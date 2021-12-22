@@ -78,7 +78,7 @@ function LoginScreen({ navigation, loginError}) {
         </KeyboardAvoidingView>
     );
 }
-function SignupScreen({navigation}) {
+function SignupScreen({navigation, loginError}) {
     const [firstName, setFirst] = React.useState('');
     const [lastName, setLast] = React.useState('');
     const [email, setEmail] = React.useState('');
@@ -92,6 +92,7 @@ function SignupScreen({navigation}) {
         <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
+                { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
                 <TextInput style={styles.loginInput} placeholder="First Name" placeholderTextColor={placeHolderColor} value={firstName} onChangeText={setFirst} />
                 <TextInput style={styles.loginInput} placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
                 <TextInput style={styles.loginInput} placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
@@ -312,6 +313,7 @@ const App = () =>  {
 
                     }
                     else{
+                        setLoginError('Please fill out fields.');
                         return
                     }
 
@@ -335,10 +337,24 @@ const App = () =>  {
                         await storeUserData(jsonData.user);
                         dispatch({ type: 'SIGN_IN', token: jsonData.token, userData: jsonData.user});
                     }else{
+                        if(jsonData){
+                            if(jsonData.email){
+                                setLoginError(jsonData.email[0]);
+                            }
+                            else if(jsonData.password){
+                                setLoginError(jsonData.password[0]);
+                            }
+                            else{
+                                setLoginError('Unknown error occurred.');
+                            }
+                        }
+                        else{
+                            setLoginError('Unknown error occurred.');
+                        }
                         console.log(jsonData);
                     }
                 } catch (error) {
-                    console.error(error);
+                    setLoginError('Unknown error occurred.');
                 }
             },
             getToken: () => { return state.userToken; }
@@ -492,6 +508,7 @@ const styles = StyleSheet.create({
     loginError:{
         color: 'red',
         paddingHorizontal:10,
+        textTransform: 'capitalize',
     },
     welcomeTopMessage:{
       position: "absolute",
