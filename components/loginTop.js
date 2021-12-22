@@ -1,17 +1,23 @@
 
 import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image } from 'react-native';
+import {StyleSheet, Text, View, Image, useColorScheme} from 'react-native';
 import LoginHeader from "./loginHeader";
+import {colorStylesDark, colorStylesLight} from "./styles";
 
 const welcomeDesign= require('../assets/welcome-design.png');
 
 
 const LoginTop = ({header, desc}) =>  {
+
+    const colorScheme = useColorScheme();
+
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+
     return(
-        <View style={styles.loginTop}>
+        <View style={[styles.loginTop, colors.bkgGreen1]}>
             <LoginHeader/>
             <View style={styles.loginTopInner}>
-                <Image source={welcomeDesign} style={styles.welcomeDesign}/>
+                <Image source={welcomeDesign} style={[styles.welcomeDesign, {tintColor: colorScheme === 'light' ? '#234434' : '#111111'}]}/>
                 <View style={styles.welcomeTopMessage}>
                     <Text style={styles.welcomeHeaderText}>{header}</Text>
                     <Text style={styles.welcomeHeaderDesc}>{desc}</Text>
@@ -31,8 +37,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#214031',
     },
     loginTopInner:{
-        flex:8,
-        position: 'relative',
+        flex:1,
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
     },
     loginLogo:{
         resizeMode: 'center',
@@ -56,9 +63,8 @@ const styles = StyleSheet.create({
         fontFamily: 'TTOctosquaresCondBlack',
     },
     welcomeTopMessage:{
-        position: "absolute",
-        bottom: 0,
-        left:0,
+        width: '100%',
+        alignSelf:'flex-end',
         padding:30,
     },
     welcomeHeaderText:{
@@ -74,9 +80,11 @@ const styles = StyleSheet.create({
         fontFamily: 'TTOctosquaresCondBold',
     },
     welcomeDesign:{
+        position: 'absolute',
+        right:0,left:0,top:0,bottom:0,
         width: '100%',
-        height: 600,
-        marginVertical: 100,
+        maxHeight:500,
+        flex:1,
         resizeMode: "cover",
         tintColor: '#234434'
     },

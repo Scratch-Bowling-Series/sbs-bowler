@@ -1,11 +1,15 @@
 import React, {Component, useEffect, useState} from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, useColorScheme, View} from "react-native";
 import sbsLogo from "../assets/logo-beta.png";
+import {colorStylesDark, colorStylesLight} from "./styles";
 
 const LoginHeader = ({navigation}) =>  {
     const [modalVisible, setModalVisible] = useState(false);
+    const colorScheme = useColorScheme();
+
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return(
         <SafeAreaView style={styles.loginHeader} edges={'top'}>
@@ -63,11 +67,13 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     loginLogo:{
-        resizeMode: 'center',
+        resizeMode: 'contain',
         tintColor: '#fff',
-        flex:1,
-        height: '100%',
+        height: 50,
+        width:100,
         alignSelf: 'flex-start',
+        alignItems:'flex-start',
+        padding:10,
     },
     loginOrDivider:{
         textAlign: 'center',
@@ -76,13 +82,16 @@ const styles = StyleSheet.create({
         fontFamily: 'TTOctosquaresCondBold',
     },
     loginHelp:{
-        flex:3,
-        alignItems: 'flex-end',
-        paddingVertical: 12,
+        flex:1,
+        height:50,
+        alignSelf: 'flex-end',
+        paddingVertical: 8,
+        textAlign:'right',
+        alignItems:'flex-end',
     },
     loginHeader:{
-        position: 'absolute',
-        top: 0, right:0, left:0,
+        alignItems:'flex-start',
+        justifyContent: 'flex-start',
         zIndex: 200,
         paddingVertical: 10,
         paddingHorizontal: 20,

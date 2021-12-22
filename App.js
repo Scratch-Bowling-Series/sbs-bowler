@@ -1,6 +1,6 @@
 
 import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView,Keyboard } from 'react-native';
+import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -13,8 +13,8 @@ import {useFonts} from "expo-font";
 import ProfileDisplay from './components/profiledisplay';
 import Header from "./components/header";
 import LoginTop from "./components/loginTop";
-
-import HomeScreen from "./screens/homeScreen";
+import {colorStylesLight, colorStylesDark} from './components/styles';
+import HomeScreen from "./components/screens/homeScreen";
 
 
 import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/authContext";
@@ -28,11 +28,13 @@ const welcomeDesign= require('./assets/welcome-design.png');
 
 
 function WelcomeScreen({ navigation }) {
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     return (
-        <View style={styles.loginContainer}>
+        <View style={[styles.loginContainer, colors.bkgGreen1]}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                <TouchableOpacity style={styles.loginButton} title="LOG IN" onPress={() => { navigation.navigate('Login')}}>
+                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={() => { navigation.navigate('Login')}}>
                     <Text style={styles.loginButtonText}>
                         Log In
                     </Text>
@@ -46,17 +48,22 @@ function WelcomeScreen({ navigation }) {
         </View>
     );
 }
-function LoginScreen({ navigation }) {
+function LoginScreen({ navigation, loginError}) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+
     const { signIn } = React.useContext(AuthContext);
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+    const placeHolderColor = colorScheme === 'light' ? '#e8e8e8' : '#000';
     return (
         <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                <TextInput style={styles.loginInput} placeholder="Email Address" value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={styles.loginButton} title="LOG IN" onPress={() => signIn({ email, password })}>
+                { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
+                <TextInput style={styles.loginInput} placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
+                <TextInput style={styles.loginInput} placeholder="Password" placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
+                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={() => signIn({ email, password })}>
                     <Text style={styles.loginButtonText}>
                         Log In
                     </Text>
@@ -77,15 +84,19 @@ function SignupScreen({navigation}) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const { signUp } = React.useContext(AuthContext);
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+    const placeHolderColor = colorScheme === 'light' ? '#e8e8e8' : '#000';
+
     return (
         <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                <TextInput style={styles.loginInput} placeholder="First Name" value={firstName} onChangeText={setFirst} />
-                <TextInput style={styles.loginInput} placeholder="Last Name" value={lastName} onChangeText={setLast} />
-                <TextInput style={styles.loginInput} placeholder="Email Address" value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} placeholder="Password"  value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={styles.loginButton} title="LOG IN" onPress={()=> signUp({ firstName, lastName, email, password })}>
+                <TextInput style={styles.loginInput} placeholder="First Name" placeholderTextColor={placeHolderColor} value={firstName} onChangeText={setFirst} />
+                <TextInput style={styles.loginInput} placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
+                <TextInput style={styles.loginInput} placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
+                <TextInput style={styles.loginInput} placeholder="Password"  placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
+                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={()=> signUp({ firstName, lastName, email, password })}>
                     <Text style={styles.loginButtonText}>
                         Create an Account
                     </Text>
@@ -103,8 +114,11 @@ function SignupScreen({navigation}) {
 
 
 function TournamentsScreen({navigation, userData, token}) {
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+
     return (
-        <SafeAreaView style={styles.safeAreaView}>
+        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
             <Header userData={userData} navigation={navigation}/>
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO TOURNAMENTS</Text>
@@ -113,8 +127,11 @@ function TournamentsScreen({navigation, userData, token}) {
     );
 }
 function LiveScreen({navigation, userData, token}) {
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+
     return (
-        <SafeAreaView style={styles.safeAreaView}>
+        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
             <Header userData={userData} navigation={navigation}/>
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO LIVE STREAMS</Text>
@@ -123,9 +140,11 @@ function LiveScreen({navigation, userData, token}) {
     );
 }
 function ProfileScreen({navigation, userData, token}) {
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
-        <SafeAreaView style={styles.safeAreaView}>
+        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
             <Header userData={userData} onProfile={true}/>
             <ProfileDisplay navigation={navigation} token={token} userData={userData} />
         </SafeAreaView>
@@ -178,6 +197,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const App = () =>  {
+    const [loginError, setLoginError] = useState('');
+
     const [state, dispatch] = React.useReducer(
         (prevState, action) => {
             switch (action.type) {
@@ -200,7 +221,7 @@ const App = () =>  {
                         ...prevState,
                         isSignout: true,
                         userToken: null,
-                        userData: {'first_name':'', 'last_name':''},
+                        userData: {'first_name':'', 'last_name':''}
                     };
             }
         },
@@ -208,9 +229,11 @@ const App = () =>  {
             isLoading: true,
             isSignout: false,
             userToken: null,
-            userData: {'first_name':'', 'last_name':''},
+            userData: {'first_name':'', 'last_name':''}
         }
     );
+
+    const colorScheme = useColorScheme();
 
     React.useEffect(() => {
         // Fetch the token from storage then navigate to our appropriate place
@@ -242,6 +265,7 @@ const App = () =>  {
 
                     }
                     else{
+                        setLoginError('Please fill out fields.');
                         return
                     }
 
@@ -264,10 +288,10 @@ const App = () =>  {
                         await storeUserData(jsonData.user);
                         dispatch({ type: 'SIGN_IN', token: jsonData.token, userData: jsonData.user});
                     }else{
-                        console.log(jsonData);
+                        setLoginError('Incorrect credentials.');
                     }
                 } catch (error) {
-                    console.error(error);
+                    setLoginError('Unknown error occurred.');
                 }
             },
             signOut: () => {
@@ -338,29 +362,27 @@ const App = () =>  {
         return null;
     }
 
+
+
   return (
       <AuthProvider value={authContext}>
           <UserProvider value={state.userData}>
               <SafeAreaProvider>
                   <NavigationContainer>
-
                       {state.userToken == null ? (
                           <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
                               <Stack.Screen name="Welcome" component={WelcomeScreen}/>
-                              <Stack.Screen name="Login" component={LoginScreen}/>
-                              <Stack.Screen name="Signup" component={SignupScreen}/>
+                              <Stack.Screen name="Login">
+                                  {(props) => <LoginScreen {...props} loginError={loginError} />}
+                              </Stack.Screen>
+                              <Stack.Screen name="Signup">
+                                  {(props) => <SignupScreen {...props} loginError={loginError}/>}
+                              </Stack.Screen>
                           </Stack.Navigator>
                       ) : (
                           <Tab.Navigator initialRouteName="Home" screenOptions={({ route }) => ({
                               //header: (props) => <Header {...props} userData={state.userData}/>,
                               headerShown: false,
-                              headerStyle: {
-
-                              },
-                              headerTintColor: '#fff',
-                              headerTitleStyle: {
-
-                              },
                               tabBarIcon: ({ focused, color, size }) => {
                                   let iconName;
 
@@ -373,11 +395,14 @@ const App = () =>  {
                                   } else if (route.name === 'Profile') {
                                       iconName = 'person-circle-outline';
                                   }
-
                                   // You can return any component that you like here!
                                   return <Ionicons name={iconName} size={size} color={color} />;
                               },
-                              tabBarActiveTintColor: '#d9af62',
+                              tabBarStyle: {
+                                backgroundColor: colorScheme === 'light' ? '#fff' : '#131313',
+                                borderTopColor: colorScheme === 'light' ? '#fff' : '#131313',
+                              },
+                              tabBarActiveTintColor: colorScheme === 'light' ? '#d9af62' : '#fff' ,
                               tabBarInactiveTintColor: 'grey',
                           })}>
                               <Tab.Screen name="Home" >
@@ -463,6 +488,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         flexDirection: 'row',
         fontFamily: 'TTOctosquaresCondBlack',
+    },
+    loginError:{
+        color: 'red',
+        paddingHorizontal:10,
     },
     welcomeTopMessage:{
       position: "absolute",

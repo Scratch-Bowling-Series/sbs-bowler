@@ -1,9 +1,9 @@
 import React, { Component, useState, useEffect, useContext } from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "react-native";
 
 import UserContext, {UserConsumer} from "./context/userContext";
 import AuthContext from "./context/authContext";
-
+import {colorStylesLight, colorStylesDark} from './styles';
 
 const defaultProfilePhoto = require('../assets/profile-default.png');
 const base_url = 'http://10.0.0.211:8000';
@@ -33,7 +33,8 @@ const ProfileDisplay = ({navigation, token}) => {
     const [profileData, setProfileData] =  useState();
     const {signOut, getToken} = useContext(AuthContext);
     const userData = useContext(UserContext);
-
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     useEffect(() => {
         console.log(getToken());
         getProfileDataFromApi(userData.id, token).then(profileData => {
@@ -43,27 +44,27 @@ const ProfileDisplay = ({navigation, token}) => {
 
     return(
             <View style={styles.container}>
-                <View style={styles.profilePreview}>
+                <View style={[styles.profilePreview, colors.bkgWhite]}>
                     <View style={styles.profilePreviewTop}>
                         <Image style={styles.profilePreviewPicture} source={userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
                         <View style={styles.profilePreviewDetails}>
-                            <Text style={styles.profilePreviewName}>{ userData.first_name } { userData.last_name }</Text>
+                            <Text style={[styles.profilePreviewName, colors.textBlack]}>{ userData.first_name } { userData.last_name }</Text>
                             {userData.city && userData.state ? (
-                                <Text style={styles.profilePreviewLocation}>({ userData.city || 'City' }, { userData.state || 'State' })</Text>
+                                <Text style={[styles.profilePreviewLocation, colors.textBlack]}>({ userData.city || 'City' }, { userData.state || 'State' })</Text>
                             ) : (
-                                <Text style={styles.profilePreviewLocation}>Location Unknown</Text>
+                                <Text style={[styles.profilePreviewLocation, colors.textBlack]}>Location Unknown</Text>
                             )}
-                            <Text style={styles.profilePreviewBio}>{ userData.bio || 'Your Bio is Empty.' }</Text>
+                            <Text style={[styles.profilePreviewBio, colors.textBlack]}>{ userData.bio || 'Your Bio is Empty.' }</Text>
                         </View>
                     </View>
 
                     <View style={styles.profilePreviewButtonBar}>
-                        <TouchableOpacity style={styles.profileButton} onPress={() => signOut()}>
+                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => signOut()}>
                             <Text style={styles.profileButtonText}>
                                 Log Out
                             </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.profileButton} onPress={() => signOut()}>
+                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => signOut()}>
                             <Text style={styles.profileButtonText}>
                                 Edit
                             </Text>

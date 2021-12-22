@@ -1,33 +1,60 @@
 import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView,Keyboard } from 'react-native';
+import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,useColorScheme, KeyboardAvoidingView,Keyboard } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar} from "expo-status-bar";
-const sbsLogo = require('../assets/logo-beta.png');
-const topBarGraphic = require('../assets/top-bar.png');
-const defaultProfilePhoto = require('../assets/profile-default.png');
+import SettingsModal from "./settingsModal";
+
+import sbsLogo from '../assets/logo-beta.png';
+import topBarGraphic from '../assets/top-bar.png';
+import topBarGraphicDark from '../assets/top-bar-dark.png';
+import defaultProfilePhoto from '../assets/profile-default.png';
+import {colorStylesLight, colorStylesDark} from './styles';
+
 
 const Header = ({userData, onProfile, navigation}) =>  {
+    const [modalVisible, setModalVisible] = useState(false);
+    const colorScheme = useColorScheme();
+
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+
     return (
         <View style={styles.headerWrap}>
-            <View style={styles.header}>
-                <Image source={topBarGraphic} style={styles.headerLines}/>
-                <Image source={sbsLogo} style={styles.headerLogo}/>
+            <View style={[styles.header, colors.bkgGreen1 ]}>
+                { colorScheme === 'light' ? (
+                    <Image source={topBarGraphic} style={[styles.headerLines]}/>
+                ) : (
+                    <Image source={topBarGraphicDark} style={[styles.headerLines]}/>
+                )}
+                <Image source={sbsLogo} style={[styles.headerLogo, colors.logoTint]}/>
                 { !onProfile ? (
                     <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                         <Image style={styles.profile} source={ userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity style={styles.headerSettings} onPress={() => this.setModalVisible(false)}>
+                    <TouchableOpacity style={styles.headerSettings} onPress={() => setModalVisible(true)}>
                         <Ionicons name="settings-outline" size={30} color="#fff" />
                     </TouchableOpacity>
                 )}
-                <StatusBar style="dark" />
+                    <SettingsModal modalVisible={modalVisible} setModalVisible={setModalVisible}/>
+
+                { colorScheme === 'light' ? (
+                    <StatusBar style='dark' />
+                ):(
+                        <StatusBar style='light' />
+                    )
+                }
             </View>
         </View>
     );
 };
 
+
+
+
+
 const styles = StyleSheet.create({
+
+
     headerWrap:{
         height:65,
         paddingTop: 0,
