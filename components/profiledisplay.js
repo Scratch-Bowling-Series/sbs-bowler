@@ -4,6 +4,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "
 import UserContext, {UserConsumer} from "./context/userContext";
 import AuthContext from "./context/authContext";
 import {colorStylesLight, colorStylesDark} from './styles';
+import ModifyProfileModal from "./modifyProfileModal";
 
 const defaultProfilePhoto = require('../assets/profile-default.png');
 const base_url = 'http://10.0.0.211:8000';
@@ -11,7 +12,7 @@ const base_url = 'http://10.0.0.211:8000';
 
 const getProfileDataFromApi = async (userId, token) => {
     token = 'Token ' + token;
-    let response = await fetch(base_url + '/api/user/', {
+    let response = await fetch(base_url + '/api/user/data/', {
         method: 'GET',
         headers: {
             Accept: 'application/json',
@@ -21,9 +22,7 @@ const getProfileDataFromApi = async (userId, token) => {
         },
 
     });
-    const jsonData = await response.json();
-    console.log(jsonData);
-    return jsonData;
+    return await response.json();
 }
 
 
@@ -31,8 +30,9 @@ const getProfileDataFromApi = async (userId, token) => {
 
 const ProfileDisplay = ({navigation, token}) => {
     const [profileData, setProfileData] =  useState();
+    const [modalVisible, setModalVisible] = useState(false);
     const {signOut, getToken} = useContext(AuthContext);
-    const userData = useContext(UserContext);
+    const [userData, setUserData] = useContext(UserContext);
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     useEffect(() => {
@@ -46,8 +46,15 @@ const ProfileDisplay = ({navigation, token}) => {
             <View style={styles.container}>
                 <View style={[styles.profilePreview, colors.bkgWhite]}>
                     <View style={styles.profilePreviewTop}>
-                        <Image style={styles.profilePreviewPicture} source={userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
-                        <View style={styles.profilePreviewDetails}>
+                        { userData && !userData.picture.endsWith('/default.jpg') ? (
+                            <Image style={styles.profilePreviewPicture} source={{ uri: userData.picture }} key={userData.picture}/>
+                        ) : (
+                            <Image style={styles.profilePreviewPicture} source={defaultProfilePhoto}/>
+                        ) }
+
+
+
+                       <View style={styles.profilePreviewDetails}>
                             <Text style={[styles.profilePreviewName, colors.textBlack]}>{ userData.first_name } { userData.last_name }</Text>
                             {userData.city && userData.state ? (
                                 <Text style={[styles.profilePreviewLocation, colors.textBlack]}>({ userData.city || 'City' }, { userData.state || 'State' })</Text>
@@ -59,17 +66,13 @@ const ProfileDisplay = ({navigation, token}) => {
                     </View>
 
                     <View style={styles.profilePreviewButtonBar}>
-                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => signOut()}>
+                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => setModalVisible(true)}>
                             <Text style={styles.profileButtonText}>
-                                Log Out
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => signOut()}>
-                            <Text style={styles.profileButtonText}>
-                                Edit
+                                Edit Profile
                             </Text>
                         </TouchableOpacity>
                     </View>
+                    <ModifyProfileModal modalVisible={modalVisible} setModalVisible={setModalVisible} token={token}/>
                 </View>
             </View>
     );

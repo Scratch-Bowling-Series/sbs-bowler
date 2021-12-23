@@ -1,8 +1,9 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {Component, useContext, useEffect, useState} from 'react';
 import {SafeAreaView} from "react-native-safe-area-context";
 import Header from "../header";
 import {StyleSheet, Text, useColorScheme, View} from "react-native";
 import {colorStylesLight, colorStylesDark} from '../styles';
+import UserContext from "../context/userContext";
 
 
 const base_url = 'http://10.0.0.211:8000';
@@ -12,14 +13,14 @@ const defaultProfilePhoto = require('../../assets/profile-default.png');
 const welcomeDesign= require('../../assets/welcome-design.png');
 
 
-const HomeScreen = ({navigation, userData, token}) => {
+const HomeScreen = ({navigation, token}) => {
     const colorScheme = useColorScheme();
-
+    const [userData, setUserData] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header userData={userData} navigation={navigation}/>
+            <Header navigation={navigation}/>
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>{ userData.first_name } Home Screen</Text>
             </View>

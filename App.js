@@ -19,6 +19,7 @@ import HomeScreen from "./components/screens/homeScreen";
 
 import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/authContext";
 import UserContext, {UserProvider, UserConsumer} from "./components/context/userContext";
+import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
 
 const base_url = 'http://10.0.0.211:8000';
 const sbsLogo = require('./assets/logo-beta.png');
@@ -61,8 +62,8 @@ function LoginScreen({ navigation, loginError}) {
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
                 { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
-                <TextInput style={styles.loginInput} placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} placeholder="Password" placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
+                <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
+                <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password" placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
                 <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={() => signIn({ email, password })}>
                     <Text style={styles.loginButtonText}>
                         Log In
@@ -93,10 +94,10 @@ function SignupScreen({navigation, loginError}) {
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
                 { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
-                <TextInput style={styles.loginInput} placeholder="First Name" placeholderTextColor={placeHolderColor} value={firstName} onChangeText={setFirst} />
-                <TextInput style={styles.loginInput} placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
-                <TextInput style={styles.loginInput} placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} placeholder="Password"  placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
+                <TextInput style={styles.loginInput} autoComplete="name-given" textContentType="givenName" placeholder="First Name" placeholderTextColor={placeHolderColor} value={firstName} onChangeText={setFirst} />
+                <TextInput style={styles.loginInput} autoComplete="name-family" textContentType="familyName" placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
+                <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
+                <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password"  placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
                 <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={()=> signUp({ firstName, lastName, email, password })}>
                     <Text style={styles.loginButtonText}>
                         Create an Account
@@ -114,40 +115,40 @@ function SignupScreen({navigation, loginError}) {
 }
 
 
-function TournamentsScreen({navigation, userData, token}) {
+function TournamentsScreen({navigation, token}) {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header userData={userData} navigation={navigation}/>
+            <Header navigation={navigation}/>
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO TOURNAMENTS</Text>
             </View>
         </SafeAreaView>
     );
 }
-function LiveScreen({navigation, userData, token}) {
+function LiveScreen({navigation, token}) {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header userData={userData} navigation={navigation}/>
+            <Header navigation={navigation}/>
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO LIVE STREAMS</Text>
             </View>
         </SafeAreaView>
     );
 }
-function ProfileScreen({navigation, userData, token}) {
+function ProfileScreen({navigation, token}) {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header userData={userData} onProfile={true}/>
-            <ProfileDisplay navigation={navigation} token={token} userData={userData} />
+            <Header onProfile={true}/>
+            <ProfileDisplay navigation={navigation} token={token}/>
         </SafeAreaView>
     );
 }
@@ -194,12 +195,16 @@ const getUserData = async () => {
     }
 }
 
+
+
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const App = () =>  {
     const [loginError, setLoginError] = useState('');
-
+    const [userData, setUserData] = useState({'first_name':'', 'last_name':''});
+    const [settings, setSettings] = useState({'autoGameMode': true, 'sendDiagData': false});
     const [state, dispatch] = React.useReducer(
         (prevState, action) => {
             switch (action.type) {
@@ -222,7 +227,12 @@ const App = () =>  {
                         ...prevState,
                         isSignout: true,
                         userToken: null,
-                        userData: {'first_name':'', 'last_name':''}
+                    };
+                case 'FAILED':
+                    return {
+                        ...prevState,
+                        isSignout: false,
+                        userToken: null,
                     };
             }
         },
@@ -230,7 +240,6 @@ const App = () =>  {
             isLoading: true,
             isSignout: false,
             userToken: null,
-            userData: {'first_name':'', 'last_name':''}
         }
     );
 
@@ -240,22 +249,34 @@ const App = () =>  {
         // Fetch the token from storage then navigate to our appropriate place
         const bootstrapAsync = async () => {
             let userToken;
-            let userData;
-
+            let userDatas;
             try {
                 userToken = await SecureStore.getItemAsync('userToken');
-                userData = await getUserData();
+                userDatas = await getUserData();
             } catch (e) {
                 // Restoring token failed
             }
             // After restoring token, we may need to validate it in production apps
 
+            setUserData(userDatas)
             // This will switch to the App screen or Auth screen and this loading
             // screen will be unmounted and thrown away.
-            dispatch({ type: 'RESTORE_TOKEN', token: userToken, userData: userData});
+            dispatch({ type: 'RESTORE_TOKEN', token: userToken});
         };
 
+        const getSettings = async () => {
+            try {
+                const jsonValue = await AsyncStorage.getItem('@settings')
+                const data = jsonValue != null ? JSON.parse(jsonValue) : {'autoGameMode': true, 'sendDiagData': false};
+                setSettings(data);
+            } catch(e) {
+                // error reading value
+            }
+        }
+
         bootstrapAsync();
+        getSettings();
+
     }, []);
 
     const authContext = React.useMemo(
@@ -272,7 +293,7 @@ const App = () =>  {
 
 
                     const response = await fetch(
-                        base_url + '/api/auth/login/', {
+                        base_url + '/api/user/login/', {
                         method: 'POST',
                             headers: {
                             Accept: 'application/json',
@@ -287,7 +308,8 @@ const App = () =>  {
                     if(jsonData.token && jsonData.token.length > 10 && jsonData.user){
                         await SecureStore.setItemAsync('userToken', jsonData.token);
                         await storeUserData(jsonData.user);
-                        dispatch({ type: 'SIGN_IN', token: jsonData.token, userData: jsonData.user});
+                        setUserData(jsonData.user)
+                        dispatch({ type: 'SIGN_IN', token: jsonData.token, });
                     }else{
                         setLoginError('Incorrect credentials.');
                     }
@@ -318,7 +340,7 @@ const App = () =>  {
                     }
 
                     const response = await fetch(
-                        base_url + '/api/auth/signup/', {
+                        base_url + '/api/user/signup/', {
                             method: 'POST',
                             headers: {
                                 Accept: 'application/json',
@@ -335,7 +357,8 @@ const App = () =>  {
                     if(jsonData.token && jsonData.token.length > 10 && jsonData.user){
                         await SecureStore.setItemAsync('userToken', jsonData.token);
                         await storeUserData(jsonData.user);
-                        dispatch({ type: 'SIGN_IN', token: jsonData.token, userData: jsonData.user});
+                        setUserData(jsonData.user)
+                        dispatch({ type: 'SIGN_IN', token: jsonData.token, });
                     }else{
                         if(jsonData){
                             if(jsonData.email){
@@ -380,65 +403,69 @@ const App = () =>  {
 
 
 
-  return (
-      <AuthProvider value={authContext}>
-          <UserProvider value={state.userData}>
-              <SafeAreaProvider>
-                  <NavigationContainer>
-                      {state.userToken == null ? (
-                          <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
-                              <Stack.Screen name="Welcome" component={WelcomeScreen}/>
-                              <Stack.Screen name="Login">
-                                  {(props) => <LoginScreen {...props} loginError={loginError} />}
-                              </Stack.Screen>
-                              <Stack.Screen name="Signup">
-                                  {(props) => <SignupScreen {...props} loginError={loginError}/>}
-                              </Stack.Screen>
-                          </Stack.Navigator>
-                      ) : (
-                          <Tab.Navigator initialRouteName="Home" screenOptions={({ route }) => ({
-                              //header: (props) => <Header {...props} userData={state.userData}/>,
-                              headerShown: false,
-                              tabBarIcon: ({ focused, color, size }) => {
-                                  let iconName;
 
-                                  if (route.name === 'Home') {
-                                      iconName = 'home-outline'
-                                  } else if (route.name === 'Tournaments') {
-                                      iconName = 'list-outline';
-                                  } else if (route.name === 'Live') {
-                                      iconName = 'tv-outline';
-                                  } else if (route.name === 'Profile') {
-                                      iconName = 'person-circle-outline';
-                                  }
-                                  // You can return any component that you like here!
-                                  return <Ionicons name={iconName} size={size} color={color} />;
-                              },
-                              tabBarStyle: {
-                                backgroundColor: colorScheme === 'light' ? '#fff' : '#131313',
-                                borderTopColor: colorScheme === 'light' ? '#fff' : '#131313',
-                              },
-                              tabBarActiveTintColor: colorScheme === 'light' ? '#d9af62' : '#fff' ,
-                              tabBarInactiveTintColor: 'grey',
-                          })}>
-                              <Tab.Screen name="Home" >
-                                  {(props) => <HomeScreen {...props} userData={state.userData} token={state.userToken}/>}
-                              </Tab.Screen>
-                              <Tab.Screen name="Tournaments" >
-                                  {(props) => <TournamentsScreen {...props} userData={state.userData} token={state.userToken}/>}
-                              </Tab.Screen>
-                              <Tab.Screen name="Live">
-                                  {(props) => <LiveScreen {...props} userData={state.userData} token={state.userToken}/>}
-                              </Tab.Screen>
-                              <Tab.Screen name="Profile">
-                                  {(props) => <ProfileScreen {...props} userData={state.userData} token={state.userToken}/>}
-                              </Tab.Screen>
-                          </Tab.Navigator>
-                      )}
-                  </NavigationContainer>
-              </SafeAreaProvider>
-          </UserProvider>
-      </AuthProvider>
+
+  return (
+      <SettingsProvider value={[settings, setSettings]}>
+          <AuthProvider value={authContext}>
+              <UserProvider value={[userData, setUserData]}>
+                  <SafeAreaProvider>
+                      <NavigationContainer>
+                          {state.userToken == null ? (
+                              <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
+                                  <Stack.Screen name="Welcome" component={WelcomeScreen}/>
+                                  <Stack.Screen name="Login">
+                                      {(props) => <LoginScreen {...props} loginError={loginError} />}
+                                  </Stack.Screen>
+                                  <Stack.Screen name="Signup">
+                                      {(props) => <SignupScreen {...props} loginError={loginError}/>}
+                                  </Stack.Screen>
+                              </Stack.Navigator>
+                          ) : (
+                              <Tab.Navigator initialRouteName="Home" screenOptions={({ route }) => ({
+                                  //header: (props) => <Header {...props} userData={state.userData}/>,
+                                  headerShown: false,
+                                  tabBarIcon: ({ focused, color, size }) => {
+                                      let iconName;
+
+                                      if (route.name === 'Home') {
+                                          iconName = 'home-outline'
+                                      } else if (route.name === 'Tournaments') {
+                                          iconName = 'list-outline';
+                                      } else if (route.name === 'Live') {
+                                          iconName = 'tv-outline';
+                                      } else if (route.name === 'Profile') {
+                                          iconName = 'person-circle-outline';
+                                      }
+                                      // You can return any component that you like here!
+                                      return <Ionicons name={iconName} size={size} color={color} />;
+                                  },
+                                  tabBarStyle: {
+                                    backgroundColor: colorScheme === 'light' ? '#fff' : '#131313',
+                                    borderTopColor: colorScheme === 'light' ? '#fff' : '#131313',
+                                  },
+                                  tabBarActiveTintColor: colorScheme === 'light' ? '#d9af62' : '#fff' ,
+                                  tabBarInactiveTintColor: 'grey',
+                              })}>
+                                  <Tab.Screen name="Home" >
+                                      {(props) => <HomeScreen {...props} token={state.userToken}/>}
+                                  </Tab.Screen>
+                                  <Tab.Screen name="Tournaments" >
+                                      {(props) => <TournamentsScreen {...props} token={state.userToken}/>}
+                                  </Tab.Screen>
+                                  <Tab.Screen name="Live">
+                                      {(props) => <LiveScreen {...props} token={state.userToken}/>}
+                                  </Tab.Screen>
+                                  <Tab.Screen name="Profile">
+                                      {(props) => <ProfileScreen {...props} token={state.userToken}/>}
+                                  </Tab.Screen>
+                              </Tab.Navigator>
+                          )}
+                      </NavigationContainer>
+                  </SafeAreaProvider>
+              </UserProvider>
+          </AuthProvider>
+      </SettingsProvider>
   );
 };
 

@@ -14,10 +14,13 @@ export const colorStylesLight = StyleSheet.create({
 
     textWhite:{ color: '#fff'},
     textBlack:{ color: '#000'},
+
+    borderBlack:{ borderColor: '#000'},
+    borderWhite:{ borderColor: '#fff'},
 });
 export const colorStylesDark = StyleSheet.create({
     bkgGreen1:{ backgroundColor: '#0a0a0a'},
-    logoTint:{ tintColor: '#a1a1a1'},
+    logoTint:{ tintColor: '#ffffff'},
 
     bkgWhite:{ backgroundColor: '#1e1e1e'},
     bkgGrey1:{ backgroundColor: '#000'},
@@ -29,5 +32,8 @@ export const colorStylesDark = StyleSheet.create({
 
 
     textWhite:{ color: '#000'},
-    textBlack:{ color: '#fff'},
+    textBlack:{ color: '#ffffff'},
+
+    borderBlack:{ borderColor: '#383838'},
+    borderWhite:{ borderColor: '#000'},
 });

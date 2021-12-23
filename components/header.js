@@ -1,4 +1,4 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {Component, useContext, useEffect, useState} from 'react';
 import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,useColorScheme, KeyboardAvoidingView,Keyboard } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar} from "expo-status-bar";
@@ -9,12 +9,13 @@ import topBarGraphic from '../assets/top-bar.png';
 import topBarGraphicDark from '../assets/top-bar-dark.png';
 import defaultProfilePhoto from '../assets/profile-default.png';
 import {colorStylesLight, colorStylesDark} from './styles';
+import UserContext from "./context/userContext";
 
 
-const Header = ({userData, onProfile, navigation}) =>  {
+const Header = ({onProfile, navigation}) =>  {
     const [modalVisible, setModalVisible] = useState(false);
     const colorScheme = useColorScheme();
-
+    const [userData, setUserData] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
