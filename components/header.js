@@ -15,7 +15,7 @@ import UserContext from "./context/userContext";
 const Header = ({onProfile, navigation}) =>  {
     const [modalVisible, setModalVisible] = useState(false);
     const colorScheme = useColorScheme();
-    const [userData, setUserData] = useContext(UserContext);
+    const [userData, userToken] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (

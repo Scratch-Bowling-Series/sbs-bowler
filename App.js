@@ -1,12 +1,13 @@
 
 import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView, useColorScheme } from 'react-native';
+import {StyleSheet, Text, View, Image, Platform, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {StatusBar} from "expo-status-bar";
+import { Video, AVPlaybackStatus } from 'expo-av';
+
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFonts} from "expo-font";
@@ -21,12 +22,13 @@ import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/auth
 import UserContext, {UserProvider, UserConsumer} from "./components/context/userContext";
 import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
+
 const sbsLogo = require('./assets/logo-beta.png');
 const topBarGraphic = require('./assets/top-bar.png');
 const defaultProfilePhoto = require('./assets/profile-default.png');
 const welcomeDesign= require('./assets/welcome-design.png');
-
+import splashScreen from './assets/splash.png';
 
 function WelcomeScreen({ navigation }) {
     const colorScheme = useColorScheme();
@@ -153,13 +155,23 @@ function ProfileScreen({navigation, token}) {
     );
 }
 
-function SplashScreen(){
+function SplashScreen({setSplashFinished}){
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' || true ? colorStylesLight : colorStylesDark;
+
+    const playbackStatusUpdate = (status) => {
+        if(status.didJustFinish){
+            setSplashFinished(true);
+        }
+    }
+
     return (
-        <SafeAreaView style={styles.safeAreaView}>
-            <View style={styles.container}>
-                <Text>Profile Screen</Text>
-            </View>
-        </SafeAreaView>
+        <View style={{flex: 1,}}>
+            <Video source={require('./assets/SBS_Logo_Reveal.mp4')}
+                   style={{flex:1, resizeMode:'contain'}}
+                   resizeMode="contain" shouldPlay={true}
+                   onPlaybackStatusUpdate={ (playbackStatus) => playbackStatusUpdate(playbackStatus)}/>
+        </View>
     );
 }
 function SettingsScreen() {
@@ -173,38 +185,80 @@ function SettingsScreen() {
     );
 }
 
-const storeUserData = async (value) => {
-    try {
-        if(value === null){
-            value = {'first_name':'', 'last_name':''};
-        }
 
-        const jsonValue = JSON.stringify(value)
-        await AsyncStorage.setItem('@user_data', jsonValue)
-    } catch (e) {
-        // saving error
+
+const validateUserToken = async (token) => {
+    let response = await fetch(base_url + '/api/user/data/', {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Token ' + token,
+            credentials: 'include',
+        },
+    });
+    const jsonData = await response.json();
+    if(jsonData && jsonData[0]){
+        return jsonData[0]
     }
+    return null;
 }
-const getUserData = async () => {
-    try {
-        const jsonValue = await AsyncStorage.getItem('@user_data')
-        const data = jsonValue != null ? JSON.parse(jsonValue) : null;
-        return data != null ? data : {'first_name':'', 'last_name':''};
-    } catch(e) {
-        // error reading value
+const logoutUserOnServer = async (token) => {
+    const userToken = 'Token ' + token;
+    let response = await fetch(base_url + '/api/user/logout/', {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': userToken,
+            credentials: 'include',
+        },
+    });
+    const jsonData = await response.json();
+    console.log(jsonData);
+    if(jsonData && jsonData[0]){
+        return jsonData[0]
     }
+    return null;
 }
-
-
-
+const performSignIn = async (email, password) => {
+    const response = await fetch(
+        base_url + '/api/user/login/', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+    return await response.json();
+}
+const performSignUp = async (first, last, email, password) => {
+    const response = await fetch(
+        base_url + '/api/user/signup/', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                first_name: first,
+                last_name: last,
+                email: email,
+                password: password
+            })
+        });
+    return await response.json();
+}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const App = () =>  {
-    const [loginError, setLoginError] = useState('');
-    const [userData, setUserData] = useState({'first_name':'', 'last_name':''});
-    const [settings, setSettings] = useState({'autoGameMode': true, 'sendDiagData': false});
+    const [settings, setSettings] = React.useState({'autoGameMode': true, 'sendDiagData': false});
     const [state, dispatch] = React.useReducer(
         (prevState, action) => {
             switch (action.type) {
@@ -214,6 +268,7 @@ const App = () =>  {
                         userToken: action.token,
                         userData: action.userData,
                         isLoading: false,
+                        loginError: null,
                     };
                 case 'SIGN_IN':
                     return {
@@ -221,18 +276,28 @@ const App = () =>  {
                         isSignout: false,
                         userToken: action.token,
                         userData: action.userData,
+                        loginError: null,
                     };
                 case 'SIGN_OUT':
                     return {
                         ...prevState,
                         isSignout: true,
                         userToken: null,
+                        userData: null,
+                        loginError: null,
                     };
                 case 'FAILED':
                     return {
                         ...prevState,
                         isSignout: false,
                         userToken: null,
+                        userData: null,
+                        loginError: action.loginError,
+                    };
+                case 'UPDATE_DATA':
+                    return {
+                        ...prevState,
+                        userData: action.userData,
                     };
             }
         },
@@ -240,30 +305,14 @@ const App = () =>  {
             isLoading: true,
             isSignout: false,
             userToken: null,
+            userData: null,
+            loginError: null,
         }
     );
 
     const colorScheme = useColorScheme();
 
     React.useEffect(() => {
-        // Fetch the token from storage then navigate to our appropriate place
-        const bootstrapAsync = async () => {
-            let userToken;
-            let userDatas;
-            try {
-                userToken = await SecureStore.getItemAsync('userToken');
-                userDatas = await getUserData();
-            } catch (e) {
-                // Restoring token failed
-            }
-            // After restoring token, we may need to validate it in production apps
-
-            setUserData(userDatas)
-            // This will switch to the App screen or Auth screen and this loading
-            // screen will be unmounted and thrown away.
-            dispatch({ type: 'RESTORE_TOKEN', token: userToken});
-        };
-
         const getSettings = async () => {
             try {
                 const jsonValue = await AsyncStorage.getItem('@settings')
@@ -274,8 +323,30 @@ const App = () =>  {
             }
         }
 
+        const bootstrapAsync = async () => {
+            let userToken;
+            let userData_;
+            try {
+                userToken = await SecureStore.getItemAsync('userToken');
+                const userDataJson = await AsyncStorage.getItem('@user_data')
+                userData_ = userDataJson != null ? JSON.parse(userDataJson) : null;
+            } catch (e) {
+                // Restoring token failed
+            }
+            await getSettings();
+            if(userToken){
+                userData_ = await validateUserToken(userToken);
+                if(!userData_){
+                    userToken = null;
+                }
+                else{
+                    await AsyncStorage.setItem('@user_data', JSON.stringify(userData_))
+                }
+            }
+            dispatch({ type: 'RESTORE_TOKEN', token: userToken, userData: userData_});
+        };
+
         bootstrapAsync();
-        getSettings();
 
     }, []);
 
@@ -283,142 +354,110 @@ const App = () =>  {
         () => ({
             signIn: async data => {
                 try {
-                    if(data['email'] && data['password']){
-
+                    if(!data['email'] || !data['password']){
+                        dispatch({type: 'FAILED', loginError: 'Please fill out fields.'})
                     }
                     else{
-                        setLoginError('Please fill out fields.');
-                        return
-                    }
-
-
-                    const response = await fetch(
-                        base_url + '/api/user/login/', {
-                        method: 'POST',
-                            headers: {
-                            Accept: 'application/json',
-                                'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: data['email'],
-                            password: data['password']
-                        })
-                    });
-                    const jsonData = await response.json();
-                    if(jsonData.token && jsonData.token.length > 10 && jsonData.user){
-                        await SecureStore.setItemAsync('userToken', jsonData.token);
-                        await storeUserData(jsonData.user);
-                        setUserData(jsonData.user)
-                        dispatch({ type: 'SIGN_IN', token: jsonData.token, });
-                    }else{
-                        setLoginError('Incorrect credentials.');
+                        const response = await performSignIn(data['email'], data['password']);
+                        if(response){
+                            if(response.token && response.user){
+                                await SecureStore.setItemAsync('userToken', response.token);
+                                await AsyncStorage.setItem('@user_data', JSON.stringify(response.user))
+                                dispatch({ type: 'SIGN_IN', token: response.token, userData: response.user});
+                            }
+                            else{
+                                dispatch({type: 'FAILED', loginError: 'Incorrect credentials.'})
+                                console.log(response);
+                            }
+                        }
+                        else{
+                            dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
+                        }
                     }
                 } catch (error) {
-                    setLoginError('Unknown error occurred.');
+                    dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
                 }
             },
-            signOut: () => {
+            signOut: async () => {
                 try{
-                    storeUserData(null).then(r => {});
-                    SecureStore.deleteItemAsync('userToken').then(r => {});
-                    console.log('cleared secure store');
+                    await logoutUserOnServer(state.userToken);
+                    await AsyncStorage.removeItem('@user_data');
+                    await SecureStore.deleteItemAsync('userToken');
+
                 }
                 catch(error){
 
                 }
-
                 dispatch({ type: 'SIGN_OUT' })
             },
             signUp: async data => {
                 try {
-                    if(data['email'] && data['password'] && data['firstName'] && data['lastName']){
-
+                    if(!data['email'] || !data['password'] || !data['firstName'] || !data['lastName']){
+                        dispatch({type: 'FAILED', loginError: 'Please fill out fields.'});
                     }
                     else{
-                        setLoginError('Please fill out fields.');
-                        return
-                    }
-
-                    const response = await fetch(
-                        base_url + '/api/user/signup/', {
-                            method: 'POST',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                first_name: data['firstName'],
-                                last_name: data['lastName'],
-                                email: data['email'],
-                                password: data['password']
-                            })
-                        });
-                    const jsonData = await response.json();
-                    if(jsonData.token && jsonData.token.length > 10 && jsonData.user){
-                        await SecureStore.setItemAsync('userToken', jsonData.token);
-                        await storeUserData(jsonData.user);
-                        setUserData(jsonData.user)
-                        dispatch({ type: 'SIGN_IN', token: jsonData.token, });
-                    }else{
-                        if(jsonData){
-                            if(jsonData.email){
-                                setLoginError(jsonData.email[0]);
-                            }
-                            else if(jsonData.password){
-                                setLoginError(jsonData.password[0]);
+                        const response = await performSignUp(data['firstName'], data['lastName'], data['email'], data['password']);
+                        if(response){
+                            if(response.token && response.user){
+                                await SecureStore.setItemAsync('userToken', response.token);
+                                await AsyncStorage.setItem('@user_data', JSON.stringify(response.user))
+                                dispatch({ type: 'SIGN_IN', token: response.token, userData: response.user});
                             }
                             else{
-                                setLoginError('Unknown error occurred.');
+                                if(response.email){
+                                    dispatch({type: 'FAILED', loginError: response.email[0]})
+                                }
+                                else if(response.password){
+                                    dispatch({type: 'FAILED', loginError: response.password[0]})
+                                }
+                                else{
+                                    dispatch({type: 'FAILED', loginError: 'Incorrect credentials.'})
+                                }
                             }
                         }
                         else{
-                            setLoginError('Unknown error occurred.');
+                            dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
                         }
-                        console.log(jsonData);
                     }
                 } catch (error) {
-                    setLoginError('Unknown error occurred.');
+                    dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
                 }
             },
-            getToken: () => { return state.userToken; }
-
-
+            updateUserData: async data => {
+                if(data){
+                    dispatch({ type: 'UPDATE_DATA', userData: data});
+                }
+            }
         }),
         []
     );
-
-    if (state.isLoading && false) {
-        // We haven't finished checking for the token yet
-        return <SplashScreen />;
-    }
 
     const [loaded] = useFonts({
         TTOctosquaresCondRegular: require('./assets/fonts/TTOctosquaresCond-Regular.otf'),
         TTOctosquaresCondBlack: require('./assets/fonts/TTOctosquaresCond-Black.otf'),
         TTOctosquaresCondBold: require('./assets/fonts/TTOctosquaresCond-Bold.otf'),
     });
-    if (!loaded) {
-        return null;
+
+    const [splashFinished, setSplashFinished] = React.useState(false);
+    if (state.isLoading || !loaded || !splashFinished) {
+        return <SplashScreen setSplashFinished={setSplashFinished}/>;
     }
-
-
-
 
 
   return (
       <SettingsProvider value={[settings, setSettings]}>
           <AuthProvider value={authContext}>
-              <UserProvider value={[userData, setUserData]}>
+              <UserProvider value={[state.userData, state.userToken]}>
                   <SafeAreaProvider>
                       <NavigationContainer>
-                          {state.userToken == null ? (
+                          {state.userToken == null || state.userData == null ? (
                               <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
                                   <Stack.Screen name="Welcome" component={WelcomeScreen}/>
                                   <Stack.Screen name="Login">
-                                      {(props) => <LoginScreen {...props} loginError={loginError} />}
+                                      {(props) => <LoginScreen {...props} loginError={state.loginError} />}
                                   </Stack.Screen>
                                   <Stack.Screen name="Signup">
-                                      {(props) => <SignupScreen {...props} loginError={loginError}/>}
+                                      {(props) => <SignupScreen {...props} loginError={state.loginError}/>}
                                   </Stack.Screen>
                               </Stack.Navigator>
                           ) : (

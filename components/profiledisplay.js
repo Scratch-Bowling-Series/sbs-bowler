@@ -1,79 +1,95 @@
 import React, { Component, useState, useEffect, useContext } from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from "react-native";
+import {Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme, ScrollView, RefreshControl} from "react-native";
 
 import UserContext, {UserConsumer} from "./context/userContext";
 import AuthContext from "./context/authContext";
 import {colorStylesLight, colorStylesDark} from './styles';
 import ModifyProfileModal from "./modifyProfileModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const defaultProfilePhoto = require('../assets/profile-default.png');
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
-const getProfileDataFromApi = async (userId, token) => {
-    token = 'Token ' + token;
+const getProfileDataFromApi = async (token) => {
     let response = await fetch(base_url + '/api/user/data/', {
         method: 'GET',
         headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            'Authorization': token,
+            'Authorization': 'Token ' + token,
             credentials: 'include',
         },
-
     });
-    return await response.json();
+    const jsonData = await response.json();
+    if(jsonData && jsonData[0]){
+        return jsonData[0]
+    }
+    return null;
 }
 
 
 
 
-const ProfileDisplay = ({navigation, token}) => {
-    const [profileData, setProfileData] =  useState();
+const ProfileDisplay = ({navigation}) => {
+
+    const [refreshing, setRefreshing] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
-    const {signOut, getToken} = useContext(AuthContext);
-    const [userData, setUserData] = useContext(UserContext);
+
+    const {updateUserData} = useContext(AuthContext);
+    const [userData, userToken] = useContext(UserContext);
+
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    useEffect(() => {
-        console.log(getToken());
-        getProfileDataFromApi(userData.id, token).then(profileData => {
-            setProfileData(profileData);
-        }).catch(error => {console.log(error)});
-    }, []);
+
+    const onRefresh = async () => {
+        const userData_ = await getProfileDataFromApi(userToken);
+        const hasChanged = userData_ !== userData_;
+        if(userData_ && hasChanged){
+            updateUserData(userData_);
+            await AsyncStorage.setItem('@user_data', JSON.stringify(userData_));
+        }
+    }
 
     return(
             <View style={styles.container}>
-                <View style={[styles.profilePreview, colors.bkgWhite]}>
-                    <View style={styles.profilePreviewTop}>
-                        { userData && !userData.picture.endsWith('/default.jpg') ? (
-                            <Image style={styles.profilePreviewPicture} source={{ uri: userData.picture }} key={userData.picture}/>
-                        ) : (
-                            <Image style={styles.profilePreviewPicture} source={defaultProfilePhoto}/>
-                        ) }
-
-
-
-                       <View style={styles.profilePreviewDetails}>
-                            <Text style={[styles.profilePreviewName, colors.textBlack]}>{ userData.first_name } { userData.last_name }</Text>
-                            {userData.city && userData.state ? (
-                                <Text style={[styles.profilePreviewLocation, colors.textBlack]}>({ userData.city || 'City' }, { userData.state || 'State' })</Text>
+                <ScrollView
+                    contentContainerStyle={styles.scrollView}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                        />}
+                        >
+                    <View style={[styles.profilePreview, colors.bkgWhite]}>
+                        <View style={styles.profilePreviewTop}>
+                            { userData && !userData.picture.endsWith('/default.jpg') ? (
+                                <Image style={styles.profilePreviewPicture} source={{ uri: userData.picture }} key={userData.picture}/>
                             ) : (
-                                <Text style={[styles.profilePreviewLocation, colors.textBlack]}>Location Unknown</Text>
-                            )}
-                            <Text style={[styles.profilePreviewBio, colors.textBlack]}>{ userData.bio || 'Your Bio is Empty.' }</Text>
-                        </View>
-                    </View>
+                                <Image style={styles.profilePreviewPicture} source={defaultProfilePhoto}/>
+                            ) }
 
-                    <View style={styles.profilePreviewButtonBar}>
-                        <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => setModalVisible(true)}>
-                            <Text style={styles.profileButtonText}>
-                                Edit Profile
-                            </Text>
-                        </TouchableOpacity>
+                           <View style={styles.profilePreviewDetails}>
+                                <Text style={[styles.profilePreviewName, colors.textBlack]}>{ userData.first_name } { userData.last_name }</Text>
+                                {userData.city && userData.state ? (
+                                    <Text style={[styles.profilePreviewLocation, colors.textBlack]}>({ userData.city || 'City' }, { userData.state || 'State' })</Text>
+                                ) : (
+                                    <Text style={[styles.profilePreviewLocation, colors.textBlack]}>Location Unknown</Text>
+                                )}
+                                <Text style={[styles.profilePreviewBio, colors.textBlack]}>{ userData.bio || 'Your Bio is Empty.' }</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.profilePreviewButtonBar}>
+                            <TouchableOpacity style={[styles.profileButton, colors.bkgGreen1]} onPress={() => setModalVisible(true)}>
+                                <Text style={styles.profileButtonText}>
+                                    Edit Profile
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                        <ModifyProfileModal modalVisible={modalVisible} setModalVisible={setModalVisible}/>
                     </View>
-                    <ModifyProfileModal modalVisible={modalVisible} setModalVisible={setModalVisible} token={token}/>
-                </View>
+                </ScrollView>
             </View>
     );
 }

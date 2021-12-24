@@ -4,25 +4,26 @@ import Header from "../header";
 import {StyleSheet, Text, useColorScheme, View} from "react-native";
 import {colorStylesLight, colorStylesDark} from '../styles';
 import UserContext from "../context/userContext";
+import AuthContext from "../context/authContext";
 
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 const sbsLogo = require('../../assets/logo-beta.png');
 const topBarGraphic = require('../../assets/top-bar.png');
 const defaultProfilePhoto = require('../../assets/profile-default.png');
 const welcomeDesign= require('../../assets/welcome-design.png');
 
 
-const HomeScreen = ({navigation, token}) => {
+const HomeScreen = ({navigation}) => {
     const colorScheme = useColorScheme();
-    const [userData, setUserData] = useContext(UserContext);
+    const [userData, userToken] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
             <Header navigation={navigation}/>
             <View style={styles.container}>
-                <Text style={styles.screenEmpty}>{ userData.first_name } Home Screen</Text>
+                <Text style={styles.screenEmpty}>UUID:{userData.id} TOKEN:{ userToken }</Text>
             </View>
         </SafeAreaView>
     );

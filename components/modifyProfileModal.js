@@ -7,7 +7,7 @@ import {
     Alert,
     TouchableOpacity,
     TextInput,
-    useColorScheme, Platform, KeyboardAvoidingView
+    useColorScheme, Platform, KeyboardAvoidingView, ActivityIndicator
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -20,7 +20,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const googlePlacesApiKey = 'AIzaSyAJF26vR7y95AC7xjFt2cqSRv21gEC-yZE';
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 function getAddressStringFromUserData(userData){
     const street = userData.street || '';
@@ -67,22 +67,9 @@ function convertGoogleLocationDetailsToArray(details){
     return [street, city, state, country, zip];
 }
 
-const storeUserData = async (value) => {
-    try {
-        if(value === null){
-            value = {'first_name':'', 'last_name':''};
-        }
-
-        const jsonValue = JSON.stringify(value)
-        await AsyncStorage.setItem('@user_data', jsonValue)
-    } catch (e) {
-        // saving error
-    }
-}
 
 
-
-const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  {
+const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
     const [profileModified, setProfileModified] = React.useState(false);
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [modifyError, setModifyError] = React.useState('');
@@ -92,9 +79,9 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
     const [bio, setBio] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [address, setAddress] = React.useState(null);
-
-    const [userData, setUserData] = React.useContext(UserContext);
-    const { signUp, signOut } = React.useContext(AuthContext);
+    const [applying, setApplying] = React.useState(false);
+    const [userData, userToken] = React.useContext(UserContext);
+    const { signOut, updateUserData } = React.useContext(AuthContext);
     const ref = useRef();
 
     const colorScheme = useColorScheme();
@@ -119,16 +106,14 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
         setProfileModified(true);
     };
 
-    const modifyProfileWithApi = async (userId, authToken) => {
+    const modifyProfileWithApi = async () => {
         const formData = new FormData();
-
+        setApplying(true);
         try {
             let picture = '';
             if(selectedImage){
                 picture = {uri: selectedImage.uri, name: 'image', type: 'image/png'}
             }
-            console.log(authToken);
-
             formData.append('first_name', firstName);
             formData.append('last_name', lastName);
             formData.append('bio', bio);
@@ -136,12 +121,11 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
             formData.append('picture', picture);
             formData.append('address', JSON.stringify(address));
 
-            authToken = 'Token ' + authToken;
             let response = await fetch(base_url + '/api/user/modify/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': authToken,
+                    'Authorization': 'Token ' + userToken,
                     credentials: 'include',
                 },
                 body: formData
@@ -149,8 +133,8 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
 
             const jsonData = await response.json();
             if(jsonData && jsonData.user){
-                setUserData(jsonData.user);
-                storeUserData(jsonData.user);
+                updateUserData(jsonData.user)
+                await AsyncStorage.setItem('@user_data', JSON.stringify(jsonData.user))
                 setSelectedImage(null);
                 setModalVisible(false);
             }
@@ -158,7 +142,8 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
         } catch (error){
 
         }
-        }
+        setApplying(false);
+    }
 
     useEffect(() => {
         if(userData.picture && userData.picture.endsWith('/profile-pictures/default.jpg')){
@@ -191,8 +176,8 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
                 Alert.alert("Modal has been closed.");
                 this.setModalVisible(!this.modalVisible);
             }}
-            style={styles.helpModal}
-        >
+            style={styles.helpModal}>
+
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]}>
                 <View style={styles.helpHeader}>
                     <Text style={[styles.helpHeaderText, colors.textBlack]}>Edit Profile</Text>
@@ -247,10 +232,11 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify, token}) =>  
                     <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} autoComplete="email" textContentType="emailAddress"  placeholder="Email" placeholderTextColor={placeHolderColor} value={email.toString()} onChangeText={ text => {setEmail(text); setProfileModified(true)}} />
 
 
-                    <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1, {opacity: profileModified ? 1 : 0.5}]} onPress={()=> modifyProfileWithApi(userData.user_id, token) } disabled={!profileModified}>
+                    <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1, {opacity: profileModified ? 1 : 0.5}]} onPress={()=> modifyProfileWithApi() } disabled={!profileModified || applying}>
                         <Text style={styles.loginButtonText}>
                             Apply
                         </Text>
+                        <ActivityIndicator style={styles.buttonLoader} size="small" color="#fff" animating={applying}/>
                     </TouchableOpacity>
                 </View>
                 <View style={{flexDirection:'row', justifyContent: 'center'}}>
@@ -327,6 +313,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         alignItems: 'center',
         justifyContent: 'center',
+        position: "relative",
+    },
+    buttonLoader:{
+        left:15,
+        position:'absolute',
     },
     loginButtonText:{
         fontSize: 20,
