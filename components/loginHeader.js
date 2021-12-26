@@ -4,6 +4,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, useColorScheme, View} from "react-native";
 import sbsLogo from "../assets/logo-beta.png";
 import {colorStylesDark, colorStylesLight} from "./styles";
+import {StatusBar} from "expo-status-bar";
 
 const LoginHeader = ({navigation}) =>  {
     const [modalVisible, setModalVisible] = useState(false);
@@ -12,7 +13,7 @@ const LoginHeader = ({navigation}) =>  {
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return(
-        <SafeAreaView style={styles.loginHeader} edges={'top'}>
+        <SafeAreaView style={styles.loginHeader} edges={['top']}>
             <Image source={sbsLogo} style={styles.loginLogo}/>
             <TouchableOpacity style={styles.loginHelp} onPress={() => setModalVisible(true)}>
                 <Ionicons name="help-circle-outline" size={32} color="#fff" />
@@ -42,6 +43,7 @@ const LoginHeader = ({navigation}) =>  {
                     </View>
                 </SafeAreaView>
             </Modal>
+            <StatusBar style='light' />
         </SafeAreaView>
     );
 }

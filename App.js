@@ -1,6 +1,18 @@
 
 import React, {Component, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Platform, Alert, TouchableOpacity,TextInput, KeyboardAvoidingView, useColorScheme } from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    Image,
+    Platform,
+    Alert,
+    TouchableOpacity,
+    TextInput,
+    KeyboardAvoidingView,
+    useColorScheme,
+    ActivityIndicator
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,7 +23,6 @@ import { Video, AVPlaybackStatus } from 'expo-av';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFonts} from "expo-font";
-import ProfileDisplay from './components/profiledisplay';
 import Header from "./components/header";
 import LoginTop from "./components/loginTop";
 import {colorStylesLight, colorStylesDark} from './components/styles';
@@ -22,13 +33,17 @@ import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/auth
 import UserContext, {UserProvider, UserConsumer} from "./components/context/userContext";
 import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
 
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 
 const sbsLogo = require('./assets/logo-beta.png');
 const topBarGraphic = require('./assets/top-bar.png');
 const defaultProfilePhoto = require('./assets/profile-default.png');
 const welcomeDesign= require('./assets/welcome-design.png');
 import splashScreen from './assets/splash.png';
+
+import ProfileScreen from "./components/screens/profileScreen";
+import * as Notifications from "expo-notifications";
+import * as Device from 'expo-device';
 
 function WelcomeScreen({ navigation }) {
     const colorScheme = useColorScheme();
@@ -51,28 +66,29 @@ function WelcomeScreen({ navigation }) {
         </View>
     );
 }
-function LoginScreen({ navigation, loginError}) {
+function LoginScreen({ navigation, loginError, applying}) {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
 
     const { signIn } = React.useContext(AuthContext);
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    const placeHolderColor = colorScheme === 'light' ? '#e8e8e8' : '#000';
+    const placeHolderColor = colorScheme === 'light' ? 'lightgrey' : 'grey';
     return (
-        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "undefined"}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
                 { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
                 <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
                 <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password" placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={() => signIn({ email, password })}>
+                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} onPress={() => signIn({ email, password })} disabled={applying}>
                     <Text style={styles.loginButtonText}>
                         Log In
                     </Text>
+                    <ActivityIndicator style={styles.buttonLoader} size="small" color="#fff" animating={applying}/>
                 </TouchableOpacity>
                 <Text style={styles.loginOrDivider}>OR</Text>
-                <TouchableOpacity style={styles.loginButtonOffset} title="LOG IN" onPress={() => { navigation.navigate('Signup')}}>
+                <TouchableOpacity style={styles.loginButtonOffset} onPress={() => { navigation.navigate('Signup')}} disabled={applying}>
                     <Text style={styles.loginButtonTextOffset}>
                         Create an Account
                     </Text>
@@ -81,7 +97,7 @@ function LoginScreen({ navigation, loginError}) {
         </KeyboardAvoidingView>
     );
 }
-function SignupScreen({navigation, loginError}) {
+function SignupScreen({navigation, loginError, applying}) {
     const [firstName, setFirst] = React.useState('');
     const [lastName, setLast] = React.useState('');
     const [email, setEmail] = React.useState('');
@@ -89,10 +105,10 @@ function SignupScreen({navigation, loginError}) {
     const { signUp } = React.useContext(AuthContext);
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    const placeHolderColor = colorScheme === 'light' ? '#e8e8e8' : '#000';
+    const placeHolderColor = colorScheme === 'light' ? 'lightgrey' : 'grey';
 
     return (
-        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "undefined"}>
             <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
             <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
                 { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
@@ -100,13 +116,14 @@ function SignupScreen({navigation, loginError}) {
                 <TextInput style={styles.loginInput} autoComplete="name-family" textContentType="familyName" placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
                 <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
                 <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password"  placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={()=> signUp({ firstName, lastName, email, password })}>
+                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} onPress={()=> signUp({ firstName, lastName, email, password })} disabled={applying}>
                     <Text style={styles.loginButtonText}>
                         Create an Account
                     </Text>
+                    <ActivityIndicator style={styles.buttonLoader} size="small" color="#fff" animating={applying}/>
                 </TouchableOpacity>
                 <Text style={styles.loginOrDivider}>OR</Text>
-                <TouchableOpacity style={styles.loginButtonOffset} title="LOG IN" onPress={() => { navigation.navigate('Login')}}>
+                <TouchableOpacity style={styles.loginButtonOffset} onPress={() => { navigation.navigate('Login')}} disabled={applying}>
                     <Text style={styles.loginButtonTextOffset}>
                         Log In
                     </Text>
@@ -143,17 +160,7 @@ function LiveScreen({navigation, token}) {
         </SafeAreaView>
     );
 }
-function ProfileScreen({navigation, token}) {
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
-    return (
-        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header onProfile={true}/>
-            <ProfileDisplay navigation={navigation} token={token}/>
-        </SafeAreaView>
-    );
-}
 
 function SplashScreen({setSplashFinished}){
     const colorScheme = useColorScheme();
@@ -222,6 +229,7 @@ const logoutUserOnServer = async (token) => {
     return null;
 }
 const performSignIn = async (email, password) => {
+    email = email.toLowerCase();
     const response = await fetch(
         base_url + '/api/user/login/', {
             method: 'POST',
@@ -237,6 +245,7 @@ const performSignIn = async (email, password) => {
     return await response.json();
 }
 const performSignUp = async (first, last, email, password) => {
+    email = email.toLowerCase();
     const response = await fetch(
         base_url + '/api/user/signup/', {
             method: 'POST',
@@ -253,12 +262,43 @@ const performSignUp = async (first, last, email, password) => {
         });
     return await response.json();
 }
+const storeExpoPushTokenWithApi = async (userToken, pushToken) => {
+    try{
+        const formData = new FormData();
+        formData.append('pushToken', pushToken);
+        fetch(base_url + '/api/user/store-push/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': 'Token ' + userToken,
+                credentials: 'include',
+            },
+            body: formData
+        });
+    }catch(errors){
+        console.log(errors);
+    }
+}
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+    }),
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const App = () =>  {
+    const [expoPushToken, setExpoPushToken] = useState('');
+    const [notification, setNotification] = useState(false);
+    const notificationListener = React.useRef();
+    const responseListener = React.useRef();
+
     const [settings, setSettings] = React.useState({'autoGameMode': true, 'sendDiagData': false});
+    const [applying, setApplying] = React.useState(false);
     const [state, dispatch] = React.useReducer(
         (prevState, action) => {
             switch (action.type) {
@@ -348,11 +388,27 @@ const App = () =>  {
 
         bootstrapAsync();
 
+
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+            setNotification(notification);
+        });
+
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+            console.log(response);
+        });
+
+        return () => {
+            Notifications.removeNotificationSubscription(notificationListener.current);
+            Notifications.removeNotificationSubscription(responseListener.current);
+        };
+
+
     }, []);
 
     const authContext = React.useMemo(
         () => ({
             signIn: async data => {
+                setApplying(true);
                 try {
                     if(!data['email'] || !data['password']){
                         dispatch({type: 'FAILED', loginError: 'Please fill out fields.'})
@@ -362,7 +418,10 @@ const App = () =>  {
                         if(response){
                             if(response.token && response.user){
                                 await SecureStore.setItemAsync('userToken', response.token);
-                                await AsyncStorage.setItem('@user_data', JSON.stringify(response.user))
+                                await AsyncStorage.setItem('@user_data', JSON.stringify(response.user));
+                                const pushToken = await registerForPushNotificationsAsync();
+                                setExpoPushToken(pushToken);
+                                await storeExpoPushTokenWithApi(response.token, pushToken);
                                 dispatch({ type: 'SIGN_IN', token: response.token, userData: response.user});
                             }
                             else{
@@ -377,6 +436,7 @@ const App = () =>  {
                 } catch (error) {
                     dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
                 }
+                setApplying(false);
             },
             signOut: async () => {
                 try{
@@ -391,6 +451,7 @@ const App = () =>  {
                 dispatch({ type: 'SIGN_OUT' })
             },
             signUp: async data => {
+                setApplying(true);
                 try {
                     if(!data['email'] || !data['password'] || !data['firstName'] || !data['lastName']){
                         dispatch({type: 'FAILED', loginError: 'Please fill out fields.'});
@@ -401,6 +462,9 @@ const App = () =>  {
                             if(response.token && response.user){
                                 await SecureStore.setItemAsync('userToken', response.token);
                                 await AsyncStorage.setItem('@user_data', JSON.stringify(response.user))
+                                const pushToken = await registerForPushNotificationsAsync();
+                                setExpoPushToken(pushToken);
+                                await storeExpoPushTokenWithApi(response.token, pushToken);
                                 dispatch({ type: 'SIGN_IN', token: response.token, userData: response.user});
                             }
                             else{
@@ -422,6 +486,7 @@ const App = () =>  {
                 } catch (error) {
                     dispatch({type: 'FAILED', loginError: 'Unknown error occurred.'})
                 }
+                setApplying(false);
             },
             updateUserData: async data => {
                 if(data){
@@ -454,10 +519,10 @@ const App = () =>  {
                               <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
                                   <Stack.Screen name="Welcome" component={WelcomeScreen}/>
                                   <Stack.Screen name="Login">
-                                      {(props) => <LoginScreen {...props} loginError={state.loginError} />}
+                                      {(props) => <LoginScreen {...props} loginError={state.loginError} applying={applying}/>}
                                   </Stack.Screen>
                                   <Stack.Screen name="Signup">
-                                      {(props) => <SignupScreen {...props} loginError={state.loginError}/>}
+                                      {(props) => <SignupScreen {...props} loginError={state.loginError} applying={applying}/>}
                                   </Stack.Screen>
                               </Stack.Navigator>
                           ) : (
@@ -509,6 +574,47 @@ const App = () =>  {
 };
 
 
+async function schedulePushNotification() {
+    await Notifications.scheduleNotificationAsync({
+        content: {
+            title: "You've got mail! 📬",
+            body: 'Here is the notification body',
+            data: { data: 'goes here' },
+        },
+        trigger: { seconds: 2 },
+    });
+}
+async function registerForPushNotificationsAsync() {
+    let token;
+    if (Device.isDevice) {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+        }
+        if (finalStatus !== 'granted') {
+            alert('Failed to get push token for push notification!');
+            return;
+        }
+        token = (await Notifications.getExpoPushTokenAsync()).data;
+
+    } else {
+        //alert('Must use physical device for Push Notifications');
+    }
+
+    if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#FF231F7C',
+        });
+    }
+    return token;
+}
+
+
 
 const styles = StyleSheet.create({
     safeAreaView:{
@@ -534,7 +640,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 20,
         textAlign: 'center',
-
+        position: 'relative',
+    },
+    buttonLoader:{
+        left:15,
+        position:'absolute',
     },
     loginTop:{
         flex:4,

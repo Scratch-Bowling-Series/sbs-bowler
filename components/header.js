@@ -1,5 +1,5 @@
-import React, {Component, useContext, useEffect, useState} from 'react';
-import {StyleSheet, Text, View, Image, Platform, Modal, Alert, TouchableOpacity,useColorScheme, KeyboardAvoidingView,Keyboard } from 'react-native';
+import React, { useContext, useEffect, useState} from 'react';
+import {StyleSheet, View, Image, TouchableOpacity,useColorScheme } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar} from "expo-status-bar";
 import SettingsModal from "./settingsModal";
@@ -10,10 +10,13 @@ import topBarGraphicDark from '../assets/top-bar-dark.png';
 import defaultProfilePhoto from '../assets/profile-default.png';
 import {colorStylesLight, colorStylesDark} from './styles';
 import UserContext from "./context/userContext";
+import NotificationsModal from "./notificationsModal";
 
 
 const Header = ({onProfile, navigation}) =>  {
-    const [modalVisible, setModalVisible] = useState(false);
+    const [settingsVisible, setSettingsVisible] = useState(false);
+    const [notificationsVisible, setNotificationsVisible] = useState(false);
+
     const colorScheme = useColorScheme();
     const [userData, userToken] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
@@ -27,17 +30,23 @@ const Header = ({onProfile, navigation}) =>  {
                     <Image source={topBarGraphicDark} style={[styles.headerLines]}/>
                 )}
                 <Image source={sbsLogo} style={[styles.headerLogo, colors.logoTint]}/>
+                <TouchableOpacity style={[styles.headerButton, {marginRight:0,}]} onPress={() => setNotificationsVisible(true)}>
+                    { userData.has_notifications ? (<View style={styles.headerButtonNotify} />): null}
+                    <Ionicons style={styles.headerButtonText} name="notifications-outline" size={30} color="#fff" />
+                </TouchableOpacity>
                 { !onProfile ? (
-                    <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                        <Image style={styles.profile} source={ userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
+                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
+                        <Image style={styles.headerButtonImage} source={ userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
                     </TouchableOpacity>
                 ) : (
-                    <TouchableOpacity style={styles.headerSettings} onPress={() => setModalVisible(true)}>
-                        <Ionicons name="settings-outline" size={30} color="#fff" />
+                    <TouchableOpacity style={styles.headerButton} onPress={() => setSettingsVisible(true)}>
+                        <Ionicons style={styles.headerButtonText} name="settings-outline" size={30} color="#fff" />
                     </TouchableOpacity>
                 )}
-                    <SettingsModal modalVisible={modalVisible} setModalVisible={setModalVisible}/>
-
+                    <SettingsModal visible={settingsVisible} onRequestToClose={() => {setSettingsVisible(false)}}/>
+                    <NotificationsModal visible={notificationsVisible}
+                                        onRequestToClose={() =>{setNotificationsVisible(false)}}
+                                        userData={userData} userToken={userToken}/>
                 { colorScheme === 'light' ? (
                     <StatusBar style='dark' />
                 ):(
@@ -64,6 +73,9 @@ const styles = StyleSheet.create({
         height:65,
         backgroundColor: '#214031',
         position: 'relative',
+        flexDirection:'row',
+        alignItems:'flex-end',
+        justifyContent:'flex-end',
     },
     headerLogo:{
         position: 'absolute',
@@ -80,23 +92,37 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 0,
     },
-    headerSettings:{
+    headerButton:{
+        height:65,
+        width:40,
+        marginRight:10,
+        alignSelf:'flex-end',
+        position:'relative',
+    },
+    headerButtonText:{
         height:40,
         width:40,
-        padding:4,
+        fontSize:25,
+        textAlign:'center',
+        textAlignVertical:'center',
+        lineHeight:40,
         borderRadius: 20,
-        position: 'absolute',
-        right: 12.5,
-        top: 12.5,
+        marginVertical:12.5,
     },
-    profile:{
+    headerButtonImage:{
         height:40,
         width:40,
         borderRadius: 20,
-        position: 'absolute',
-        right: 12.5,
-        top: 12.5,
+        marginVertical:12.5,
     },
+    headerButtonNotify:{
+        position:"absolute",
+        top:17,right:8,
+        backgroundColor:'red',
+        borderRadius:4,
+        width:8,height:8,
+        zIndex:2,
+    }
 });
 
 

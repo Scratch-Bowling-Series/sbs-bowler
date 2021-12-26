@@ -39,7 +39,7 @@ const storeSettingsObj = async (value) => {
     }
 }
 
-const SettingsModal = ({modalVisible, setModalVisible}) =>  {
+const SettingsModal = ({visible, onRequestToClose}) =>  {
     const {signOut} = useContext(AuthContext);
     const [settings, setSettings] = useContext(SettingsContext)
     const userData = useContext(UserContext);
@@ -62,7 +62,7 @@ const SettingsModal = ({modalVisible, setModalVisible}) =>  {
             setAutoGameMode(settings.autoGameMode);
             setSendDiagData(settings.sendDiagData);
         }
-    }, [modalVisible]);
+    }, [visible]);
 
 
 
@@ -70,10 +70,10 @@ const SettingsModal = ({modalVisible, setModalVisible}) =>  {
         <Modal
             animationType="slide"
             transparent={false}
-            visible={modalVisible}
+            visible={visible}
             onRequestClose={() => {
                 Alert.alert("Modal has been closed.");
-                this.setModalVisible(!this.modalVisible);
+                onRequestToClose();
                 setSettings({'autoGameMode': autoGameMode, 'sendDiagData': sendDiagData});
             }}
             style={styles.helpModal}
@@ -81,7 +81,7 @@ const SettingsModal = ({modalVisible, setModalVisible}) =>  {
             <SafeAreaView style={[{flex:1, position:'relative'}, colors.bkgWhite]}>
                 <View style={styles.helpHeader}>
                     <Text style={[styles.helpHeaderText, colors.textBlack]}>Settings</Text>
-                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => {setModalVisible(false); saveSettings();}}>
+                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => {onRequestToClose(); saveSettings();}}>
                         <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
                 </View>

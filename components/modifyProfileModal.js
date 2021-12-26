@@ -20,7 +20,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const googlePlacesApiKey = 'AIzaSyAJF26vR7y95AC7xjFt2cqSRv21gEC-yZE';
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 
 function getAddressStringFromUserData(userData){
     const street = userData.street || '';
@@ -69,18 +69,19 @@ function convertGoogleLocationDetailsToArray(details){
 
 
 
-const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
+const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>  {
     const [profileModified, setProfileModified] = React.useState(false);
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [modifyError, setModifyError] = React.useState('');
     const [pictureExists, setPictureExists] = React.useState(true);
+
     const [firstName, setFirst] = React.useState('');
     const [lastName, setLast] = React.useState('');
     const [bio, setBio] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [address, setAddress] = React.useState(null);
+
     const [applying, setApplying] = React.useState(false);
-    const [userData, userToken] = React.useContext(UserContext);
     const { signOut, updateUserData } = React.useContext(AuthContext);
     const ref = useRef();
 
@@ -136,7 +137,7 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
                 updateUserData(jsonData.user)
                 await AsyncStorage.setItem('@user_data', JSON.stringify(jsonData.user))
                 setSelectedImage(null);
-                setModalVisible(false);
+                onRequestToClose();
             }
 
         } catch (error){
@@ -161,7 +162,7 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
         setBio(userData.bio || '');
         setProfileModified(false);
 
-    },[modalVisible]);
+    },[visible]);
 
 
 
@@ -171,17 +172,17 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
         <Modal
             animationType="slide"
             transparent={false}
-            visible={modalVisible}
+            visible={visible}
             onRequestClose={() => {
                 Alert.alert("Modal has been closed.");
-                this.setModalVisible(!this.modalVisible);
+                onRequestToClose();
             }}
             style={styles.helpModal}>
 
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]}>
                 <View style={styles.helpHeader}>
                     <Text style={[styles.helpHeaderText, colors.textBlack]}>Edit Profile</Text>
-                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => setModalVisible(false)}>
+                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => onRequestToClose() }>
                         <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
                 </View>
@@ -228,7 +229,7 @@ const ModifyProfileModal = ({modalVisible, setModalVisible, modify}) =>  {
                             language: 'en',
                         }}
                     />
-                    <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} placeholder="Bio" placeholderTextColor={placeHolderColor} value={bio.toString()} onChangeText={ text => {setBio(text); setProfileModified(true)}} />
+                    <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} placeholder="Bio" placeholderTextColor={placeHolderColor} value={bio.toString()} onChangeText={ text => {setBio(text); setProfileModified(true)}} maxLength={40}/>
                     <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} autoComplete="email" textContentType="emailAddress"  placeholder="Email" placeholderTextColor={placeHolderColor} value={email.toString()} onChangeText={ text => {setEmail(text); setProfileModified(true)}} />
 
 
