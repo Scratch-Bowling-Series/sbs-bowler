@@ -32,50 +32,132 @@ const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
 
+const validateCheckInUrl = (url) => {
+    if(url){
+        if(url.startsWith('https://bowler.scratchbowling.com/check-in/')){
+            const strs = url.split('https://bowler.scratchbowling.com/check-in/');
+            if(strs && strs.length > 0){
+                return strs[1];
+            }
+        }
+    }
+    return null;
+}
+
+
 
 const CheckScanner = ({visible, onRequestToClose, colors}) =>  {
+    const [state, dispatch] = React.useReducer(
+        (prevState, action) => {
+            switch (action.type) {
+                case 'LOADING':
+                    return {
+                        ...prevState,
+                        loadingUrl: true,
+                        failedUrl: false,
+                        hasPermissions: true,
+                        scanned: false,
+                    };
+                case 'FAILED':
+                    return {
+                        ...prevState,
+                        loadingUrl: false,
+                        failedUrl: true,
+                        hasPermissions: true,
+                        scanned: null,
+                    };
+                case 'SCANNED':
+                    return {
+                        ...prevState,
+                        loadingUrl: false,
+                        failedUrl: false,
+                        hasPermissions: true,
+                        scanned: true,
+                    };
+                case 'PERMS':
+                    return {
+                        ...prevState,
+                        loadingUrl: false,
+                        failedUrl: false,
+                        hasPermissions: action.hasPermissions,
+                        scanned: false,
+                    };
+                case 'RETRY':
+                    return {
+                        ...prevState,
+                        loadingUrl: false,
+                        failedUrl: false,
+                        hasPermissions: true,
+                        scanned: false,
+                    };
+            }
+        },
+        {
+            loadingUrl: false,
+            failedUrl: false,
+            hasPermissions: null,
+            scanned: null,
+        }
+    );
 
-    const [hasPermission, setHasPermission] = React.useState(null);
-    const [scanned, setScanned] = React.useState(false);
 
     const handleBarCodeScanned = ({ type, data }) => {
         if(type === 'org.iso.QRCode'){
-            if(data.startsWith('https://bowler.scratchbowling.com/check-in/')){
-                const id = data.split('https://bowler.scratchbowling.com/check-in/')[1];
-                if(id){
-                    setScanned(true);
+            const tournamentId = validateCheckInUrl(data);
+            if(tournamentId){
+                dispatch({type:'LOADING'});
+                setTimeout(() => {
+                    dispatch({type:'SCANNED'});
                     onRequestToClose(id);
-                }
+                }, 2000);
+            }
+            else{
+                dispatch({type:'FAILED'});
+                setTimeout(() => {
+                    dispatch({type:'RETRY'});
+                }, 2000);
             }
         }
     };
 
+    const Scanner = () => {
+        if (state.hasPermissions === null) {
+            return (
+                <View style={thisStyles.scannerMessageInner}>
+                    <Ionicons style={[thisStyles.scannerMessageInnerIcon, colors.textBlack]} name='camera' />
+                    <Text style={[thisStyles.scannerMessageInnerText, colors.textBlack, styles.fontBold]}>Requesting for camera permission...</Text>
+                </View>
+            );
+        }
+        if (state.hasPermissions === false) {
+            return (
+                <View style={thisStyles.scannerMessageInner}>
+                    <Ionicons style={[thisStyles.scannerMessageInnerIcon, colors.textBlack]} name='camera' />
+                    <Text style={[thisStyles.scannerMessageInnerText, colors.textBlack, styles.fontBold]}>No Camera Found...</Text>
+                </View>
+            );
+        }
+        if (state.loading){
+            return (
+                <View style={thisStyles.scannerMessageInner}>
+                    <ActivityIndicator style={[thisStyles.scannerMessageInnerLoader, colors.textBlack]} size="large"/>
+                </View>
+            );
+        }
+        return (
+            <BarCodeScanner
+                onBarCodeScanned={state.scanned ? undefined : handleBarCodeScanned}
+                style={thisStyles.scannerCamera}
+            />
+        );
+    }
+
     React.useEffect(() => {
         (async () => {
             const { status } = await BarCodeScanner.requestPermissionsAsync();
-            setHasPermission(status === 'granted');
+            dispatch({type:'PERMS', hasPermissions: status === 'granted'});
         })();
     }, []);
-
-    if (hasPermission === null) {
-        return (
-            <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]} edges={['top']}>
-                <View style={styles.container}>
-                    <Text style={[colors.textBlack]}>Requesting for camera permission</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-    if (hasPermission === false) {
-        return (
-            <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]} edges={['top']}>
-                <View style={styles.container}>
-                    <Text style={[colors.textBlack]}>No access to camera</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
-
 
     return (
         <Modal
@@ -88,21 +170,21 @@ const CheckScanner = ({visible, onRequestToClose, colors}) =>  {
             }}
             style={styles.helpModal}
         >
-            <View style={[{flex:1, position:'relative'}, colors.bkgWhite]}>
+            <SafeAreaView style={[{flex:1, position:'relative'}, colors.bkgWhite]} edges={['bottom']}>
                 <Ionicons style={[thisStyles.scannerHelp, colors.textBlack]} size={10}  name="help-circle-outline"  />
                 <View style={[styles.container, { justifyContent:'flex-end', alignItems:'center'}]}>
-                    <View style={[{flex:1,justifyContent:'center', paddingBottom:100,}]}>
+                    <View style={[{flex:1}]}>
                         <Text style={[thisStyles.scannerTopText, colors.textBlack, styles.fontBold]}>ENTER GAME MODE</Text>
                         <Text style={[thisStyles.scannerSubText, colors.textBlack, styles.fontBold]}>SCAN THE TOURNAMENT CHECK-IN CODE LOCATED NEAR THE REGISTRATION TABLE</Text>
                         <Ionicons style={[thisStyles.scannerArrow, colors.textTan]} size={40}  name="ios-arrow-down-outline"  />
                         <View style={[thisStyles.scannerWrap, colors.borderTan]}>
-                            <View style={[thisStyles.scannerCoverVertical, colors.bkgWhite]}></View>
-                            <View style={[thisStyles.scannerCoverHorizontal, colors.bkgWhite]}></View>
-                            <View style={[thisStyles.scannerInner, colors.borderGrey, ]}>
-                                <BarCodeScanner
-                                    onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-                                    style={thisStyles.scannerCamera}
-                                />
+                            { !state.loadingUrl ? (
+                                <View style={[thisStyles.scannerCoverVertical, colors.bkgWhite]}></View>
+                            ) : null}{ !state.scanned ? (
+                                <View style={[thisStyles.scannerCoverHorizontal, colors.bkgWhite]}></View>
+                            ) : null}
+                            <View style={[thisStyles.scannerInner, colors.borderGrey]}>
+                                <Scanner/>
                             </View>
                         </View>
                         <View style={[{ justifyContent:'center', alignItems:'center',}]}>
@@ -113,17 +195,38 @@ const CheckScanner = ({visible, onRequestToClose, colors}) =>  {
 
                     <View style={[styles.buttonBar, {paddingTop:20,}]}>
                         <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]} onPress={() => onRequestToClose() }>
-                            <Text style={[styles.buttonText, styles.fontBold, {colors:'#fff'}]}>GO BACK</Text>
+                            <Text style={[styles.buttonText, styles.fontBold, {color:'#fff'}]}>GO BACK</Text>
                         </TouchableOpacity>
                     </View>
 
                 </View>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 };
 
 const thisStyles = StyleSheet.create({
+    scannerMessageInner:{
+        flex:1,
+        alignItems:'center',
+        justifyContent:'center',
+    },
+    scannerMessageInnerText:{
+        textAlign:'center',
+        fontSize:16,
+    },
+    scannerMessageInnerIcon:{
+        textAlign:'center',
+        fontSize:40,
+        paddingBottom:15,
+    },
+    scannerMessageInnerLoader:{
+        textAlign:'center',
+        fontSize:40,
+        lineHeight:40,
+    },
+
+
     scannerCoverVertical:{
         position:'absolute',
         top:-5, bottom:-5,
