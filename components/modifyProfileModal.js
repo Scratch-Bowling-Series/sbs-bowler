@@ -12,7 +12,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaView} from "react-native-safe-area-context";
 import AuthContext from "./context/authContext";
-import {colorStylesDark, colorStylesLight} from "./styles";
+import {colorStylesDark, colorStylesLight, styles} from "./styles";
 import UserContext from "./context/userContext";
 import * as ImagePicker from 'expo-image-picker';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -170,6 +170,7 @@ const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>
 
     return (
         <Modal
+            presentationStyle='pageSheet'
             animationType="slide"
             transparent={false}
             visible={visible}
@@ -180,10 +181,10 @@ const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>
             style={styles.helpModal}>
 
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]}>
-                <View style={styles.helpHeader}>
-                    <Text style={[styles.helpHeaderText, colors.textBlack]}>Edit Profile</Text>
-                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => onRequestToClose() }>
-                        <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
+                <View style={styles.modalHeader}>
+                    <Text style={[styles.modalHeaderText, styles.fontBold, colors.textBlack]}>Edit Profile</Text>
+                    <TouchableOpacity style={[styles.modalHeaderButton, colors.textBlack]} onPress={() => onRequestToClose() }>
+                        <Ionicons style={styles.modalHeaderButtonText} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.profileModify}>
@@ -232,8 +233,7 @@ const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>
                     <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} placeholder="Bio" placeholderTextColor={placeHolderColor} value={bio.toString()} onChangeText={ text => {setBio(text); setProfileModified(true)}} maxLength={40}/>
                     <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} autoComplete="email" textContentType="emailAddress"  placeholder="Email" placeholderTextColor={placeHolderColor} value={email.toString()} onChangeText={ text => {setEmail(text); setProfileModified(true)}} />
 
-
-                    <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1, {opacity: profileModified ? 1 : 0.5}]} onPress={()=> modifyProfileWithApi() } disabled={!profileModified || applying}>
+                    <TouchableOpacity style={[styles.button, {marginHorizontal: 20,marginTop:10,},colors.bkgGreen1, {opacity: profileModified ? 1 : 0.5}]} onPress={()=> modifyProfileWithApi() } disabled={!profileModified || applying}>
                         <Text style={styles.loginButtonText}>
                             Apply
                         </Text>
@@ -241,8 +241,8 @@ const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>
                     </TouchableOpacity>
                 </View>
                 <View style={{flexDirection:'row', justifyContent: 'center'}}>
-                    <TouchableOpacity style={[styles.settingsSignOut]} onPress={() => signOut()}>
-                        <Text style={[styles.settingsSignOutText, colors.textBlack]}>
+                    <TouchableOpacity style={[styles.signoutButton]} onPress={() => signOut()}>
+                        <Text style={[styles.signoutButtonText, colors.textBlack]}>
                             Sign Out
                         </Text>
                     </TouchableOpacity>
@@ -251,171 +251,6 @@ const ModifyProfileModal = ({visible, onRequestToClose, userData, userToken}) =>
         </Modal>
     );
 };
-
-const styles = StyleSheet.create({
-    profileModify:{
-        flex:1,
-    },
-    profileInput:{
-        fontSize:18,
-        borderWidth: 2,
-        borderColor: 'grey',
-        borderRadius: 15,
-        margin: 10,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        fontFamily: 'TTOctosquaresCondRegular',
-        color: 'grey'
-    },
-    locationInputContainer:{
-        marginHorizontal: 10,
-        position:'relative',
-        height:'auto',
-        flex: 0,
-        zIndex:200,
-    },
-    locationListView:{
-      position:'absolute',
-      top:'100%',
-        right:0,left:0,
-        borderRadius:15,
-        overflow:'hidden',
-    },
-    locationListRow:{
-        zIndex:200,
-    },
-    locationInput:{
-        fontSize:18,
-        borderWidth: 2,
-        borderRadius: 15,
-        marginVertical: 10,
-        fontFamily: 'TTOctosquaresCondRegular',
-        color: 'grey',
-        padding:0,
-        height: 'auto',
-        paddingTop:4,
-        paddingHorizontal: 5,
-    },
-    locationInputText:{
-        margin:0,
-        fontSize: 18,
-        color: '#000',
-        textTransform: 'uppercase',
-        fontFamily: 'TTOctosquaresCondRegular',
-        backgroundColor: 'transparent',
-        textAlignVertical: 'center',
-        height: 'auto',
-        padding:0,
-    },
-    loginButton:{
-        borderRadius: 15,
-        margin: 10,
-        backgroundColor: '#214031',
-        textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: "relative",
-    },
-    buttonLoader:{
-        left:15,
-        position:'absolute',
-    },
-    loginButtonText:{
-        fontSize: 20,
-        textAlign: 'center',
-        color: 'white',
-        textTransform: 'uppercase',
-        fontFamily: 'TTOctosquaresCondBold',
-        textAlignVertical: 'center',
-        padding:10,
-    },
-    photoButton:{
-        borderRadius: 15,
-        margin: 10,
-        textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth:2,
-        borderColor: '#000',
-    },
-
-
-
-
-    settingsItem:{
-        flexDirection: 'row',
-    },
-    settingsItemName:{
-        flex:1,
-        margin:20,
-        fontSize: 17,
-        padding:5,
-        fontFamily: 'TTOctosquaresCondBold',
-    },
-    settingsSwitch:{
-        margin:20,
-        alignSelf: 'flex-end',
-    },
-    settingsVersion:{
-        fontSize:14,
-        color: 'grey',
-        fontFamily: 'TTOctosquaresCondRegular',
-        textAlign: 'center',
-        alignSelf:'flex-end',
-        width: '100%',
-    },
-    settingsWeb:{
-        paddingVertical:5,
-        fontSize:12,
-        color: 'grey',
-        fontFamily: 'TTOctosquaresCondRegular',
-        textAlign: 'center',
-        alignSelf:'flex-end',
-        width: '100%',
-    },
-    settingsSignOut:{
-        textAlign: 'center',
-        marginBottom:20,
-    },
-    settingsSignOutText:{
-        textAlign: 'center',
-        paddingVertical:10,
-        paddingHorizontal: 20,
-        fontSize:18,
-        fontFamily: 'TTOctosquaresCondRegular',
-    },
-
-    helpModal:{
-
-    },
-    helpHeader:{
-        flexDirection: 'row',
-    },
-    helpClose:{
-        flex:1,
-        paddingVertical: 12,
-        textAlign: 'right',
-        alignItems: 'flex-end',
-    },
-    helpHeaderText:{
-        flex:10,
-        color: '#000',
-        fontSize: 35,
-        fontFamily: 'TTOctosquaresCondBold',
-        padding:20,
-    },
-    helpBody: {
-        flex:9,
-    },
-    helpText: {
-        color: '#000',
-        fontSize: 18,
-        fontFamily: 'TTOctosquaresCondBold',
-        paddingHorizontal:30,
-        paddingVertical: 10,
-    },
-});
-
 
 
 

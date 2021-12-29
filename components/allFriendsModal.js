@@ -28,29 +28,11 @@ const base_url = 'http://10.0.0.211:8000';
 
 
 
-const removeFriendWithApi = async (token, friendId) => {
-    try{
-        const formData = new FormData();
-        formData.append('friend_id', friendId);
-        let response = await fetch(base_url + '/api/user/friend/remove/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Token ' + token,
-                credentials: 'include',
-            },
-            body: formData
-        });
-        const jsonData = await response.json();
-        return jsonData ? jsonData.success : false;
-    }catch(errors){
-        console.log(errors);
-    }
-}
 
 
 
-const Friend = ({ token, friend, colors }) => {
+
+const Friend = ({ token, friend, colors, removeFriend}) => {
     const [loading, setLoading] = React.useState(false);
 
     const optionSelected = async (option, friendId) => {
@@ -60,10 +42,7 @@ const Friend = ({ token, friend, colors }) => {
         }else if(option === 'message'){
 
         }else if(option === 'remove'){
-            const success = await removeFriendWithApi(token, friendId);
-            if(success){
-                console.log('successfully removed friend');
-            }
+            removeFriend(friendId);
         }
         setLoading(false);
     }
@@ -101,14 +80,17 @@ const Friend = ({ token, friend, colors }) => {
 );}
 
 
-const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friendsList, friendCount, onAskForRefresh, refreshing}) =>  {
+const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friendsList, friendCount, onAskForRefresh, refreshing, removeFriend}) =>  {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     const placeHolderColor = colorScheme === 'light' ? 'grey' : 'grey';
 
-    const friendTemplate = ({ item }) => <Friend friend={item} colors={colors} token={userToken}/>;
+    const friendTemplate = ({ item }) => <Friend friend={item} colors={colors} token={userToken} removeFriend={(id) => {removeFriend(id)}}/>;
 
-    useEffect(() => {
+
+
+
+    React.useEffect(() => {
 
 
     },[visible]);
@@ -116,6 +98,7 @@ const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friend
 
     return (
         <Modal
+            presentationStyle='pageSheet'
             animationType="slide"
             transparent={false}
             visible={visible}
@@ -126,16 +109,16 @@ const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friend
             style={styles.helpModal}>
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]} edges={['top']}>
                 <MenuProvider>
-                    <View style={styles.helpHeader}>
-                        <Text style={[styles.helpHeaderText, colors.textBlack]}>Your Friends</Text>
-                        <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => onRequestToClose() }>
-                            <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
+                    <View style={styles.modalHeader}>
+                        <Text style={[styles.modalHeaderText, colors.textBlack]}>Your Friends</Text>
+                        <TouchableOpacity style={[styles.modalHeaderButton, styles.fontBold, colors.textBlack]} onPress={() => onRequestToClose() }>
+                            <Ionicons style={[styles.modalHeaderButtonText]} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                         </TouchableOpacity>
                     </View>
                     {friendsList && friendsList.length > 0 ? (
                         <FlatList
-                            style={thisStyles.friendsList}
-                            contentContainerStyle={thisStyles.friendsList}
+                            style={[thisStyles.friendsList]}
+                            contentContainerStyle={[thisStyles.friendsList, {borderTopWidth:1,}, colors.borderGrey]}
                             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onAskForRefresh}/>}
                             data={friendsList} renderItem={friendTemplate} keyExtractor={item => item.id} />
                     ) : (

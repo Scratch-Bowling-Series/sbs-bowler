@@ -8,7 +8,7 @@ import {
     Modal,
     Alert,
     TouchableOpacity,
-    TextInput,
+    Animated,
     KeyboardAvoidingView,
     Keyboard,
     Switch,
@@ -20,9 +20,9 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import AuthContext from "./context/authContext";
 import UserContext from "./context/userContext";
 import {colorStylesDark, colorStylesLight, styles} from "./styles";
-import SettingsContext from "./context/settingsContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {Menu, MenuOption, MenuOptions, MenuTrigger} from "react-native-popup-menu";
+import { RectButton } from "react-native-gesture-handler";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+
 const sbsLogo = require('../assets/logo-beta.png');
 const topBarGraphic = require('../assets/top-bar.png');
 const defaultProfilePhoto = require('../assets/profile-default.png');
@@ -82,81 +82,166 @@ const acceptFriendWithApi = async (token, notification) => {
         console.log(errors);
     }
 }
+const dismissNotificationWithApi = async (token, notification) => {
+    try{
+        const formData = new FormData();
+        formData.append('notification_id', notification.id);
+        let response = await fetch(base_url + '/api/user/clear-notification/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': 'Token ' + token,
+                credentials: 'include',
+            },
+            body: formData
+        });
+        const jsonData = await response.json();
+        return jsonData ? jsonData.success : false;
+    }catch(errors){
+        console.log(errors);
+    }
+}
 
 
+const NotificationFriendRequest = ({ notification, userToken, colors, removeNotification}) => {
 
-const NotificationFriendRequest = ({ notification, userToken, colors }) => {
     const data = JSON.parse(notification.data);
-
     return (
-        <View style={[thisStyles.notifyItem, colors.borderGrey]}>
+        <View style={[thisStyles.notifyItem, colors.borderGrey]} >
             <Image style={[thisStyles.notifyImage]} source={{uri: base_url + data.picture}} />
-
             <View style={[thisStyles.notifyWrap]}>
                 <Text style={[thisStyles.friendsListName, colors.textBlack]} numberOfLines={2}>{notification.body}</Text>
                 <View style={[thisStyles.notifyButtons]}>
-                    <TouchableOpacity style={[thisStyles.notifyButton, colors.textBlack, colors.bkgGreen1]} onPress={() =>{acceptFriendWithApi(userToken, notification)} }>
+                    <TouchableOpacity style={[thisStyles.notifyButton, colors.bkgGreen1]} onPress={() =>{acceptFriendWithApi(userToken, notification).then(() => {removeNotification(notification.id)});} }>
                         <Text style={[thisStyles.notifyButtonText]}>ACCEPT</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[thisStyles.notifyButton, colors.textBlack, colors.bkgGrey2]} onPress={() => {cancelFriendWithApi(userToken, notification)} }>
-                        <Text style={[thisStyles.notifyButtonText]}>REMOVE</Text>
+                    <TouchableOpacity style={[thisStyles.notifyButton, colors.bkgGrey3]} onPress={() => {cancelFriendWithApi(userToken, notification).then(() => {removeNotification(notification.id)});} }>
+                        <Text style={[thisStyles.notifyButtonText, colors.textBlack]}>REMOVE</Text>
                     </TouchableOpacity>
                 </View>
-
             </View>
         </View>
     );}
-const NotificationFriendAccept = ({ notification, userToken, colors }) => {
+const NotificationFriendAccept = ({ notification, userToken, colors, removeNotification}) => {
+    const renderRightActions = (progress, dragX) => {
+
+        const trans = dragX.interpolate({
+            inputRange: [0, 50, 100, 101],
+            outputRange: [64, 80,100, 150],
+        });
+
+
+        return (
+            <Animated.View style={[{width:200,height:100,backgroundColor:'#000000', flexDirection:'row', transform: [{ translateX: trans }],}, colors.bkgGrey]}>
+                <RectButton style={[{width:100,height:99,textAlign:'center',}, colors.bkgGrey]} onPress={() => {}}>
+                    <Text style={[{flex:1,textAlign: 'center',lineHeight:18,color:'#e8e8e8',paddingHorizontal:20,paddingTop:32,}, styles.fontBold, colors.textBlack]} numberOfLines={2}>
+                        VIEW PROFILE
+                    </Text>
+                </RectButton>
+                <RectButton style={[{width:100,height:99,textAlign:'center',}, colors.bkgRed]} onPress={() => {dismissNotificationWithApi(userToken, notification).then(()=>{removeNotification(notification.id)});}}>
+                    <Text style={[{flex:1,textAlign: 'center',lineHeight:99,color:'#e8e8e8',paddingHorizontal:20,}, styles.fontBold, colors.textBlack]} numberOfLines={2}>
+                        DISMISS
+                    </Text>
+                </RectButton>
+            </Animated.View>
+
+
+        );
+    };
     const data = JSON.parse(notification.data);
-
     return (
-        <View style={[thisStyles.notifyItem, colors.borderGrey]}>
+        <Swipeable renderRightActions={renderRightActions}>
+            <View style={[thisStyles.notifyItem, colors.bkgWhite, colors.borderGrey]}>
             <Image style={[thisStyles.notifyImage]} source={{uri: base_url + data.picture}} />
-
             <View style={[thisStyles.notifyWrap]}>
                 <Text style={[thisStyles.friendsListName,{paddingBottom:0,paddingTop:20,flex:0,}, colors.textBlack]} numberOfLines={2}>{notification.body}</Text>
-                <Text style={[thisStyles.notifyDateTime, colors.textGrey1]}>12m</Text>
+                <Duration datetime={notification.datetime} />
             </View>
-
-        </View>
+            </View>
+        </Swipeable>
     );}
 
-const NotificationsModal = ({visible, onRequestToClose, userData, userToken}) =>  {
+const Duration = (datetime) => {
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+    const calculateDuration = () => {
+        datetime = datetime.datetime;
+        const date = new Date(datetime);
+        if(date){
+            const ms = date.getTime();
+            const seconds = Math.floor((Date.now() - ms)/1000);
+            const minutes = Math.floor(seconds/60);
+            const hours = Math.floor(minutes/60);
+            const days = Math.floor(hours/24);
+            const weeks = Math.floor(days/7);
+
+            if(weeks > 0){
+                return weeks + 'w';
+            }else if(days > 0){
+                return days + 'd';
+            }else if(hours > 0){
+                return hours + 'h';
+            }else if(minutes > 0){
+                return minutes + 'm';
+            }else if(seconds > 0){
+                return seconds + 's';
+            }
+        }
+    }
+
+    const duration = calculateDuration();
+
+
+    return (<Text style={[thisStyles.notifyDateTime, colors.textGrey2]}>{duration}</Text>)
+}
+
+const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onUpdateUserData}) =>  {
     const [notifications, setNotifications] = React.useState(null);
     const [notificationsCount, setNotificationsCount] = React.useState(null);
     const [refreshing, setRefreshing] = React.useState(false);
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
+    const setNotificationsTask = (data) => {
+        setNotifications(data);
+        const length = data ? data.length : 0;
+
+        setNotificationsCount(length);
+        if(length === 0 && userData.has_notifications){
+            userData.has_notifications = false;
+            onUpdateUserData(userData);
+        }
+    }
+    const removeNotification = (id) => {
+        setNotificationsTask(notifications.filter(item => item.id !== id));
+    }
+
+
 
     const notificationTemplate = ({ item }) => {
-        console.log(item.type);
         if(item.type === 'friend_request'){
-            return (<NotificationFriendRequest notification={item} colors={colors} userToken={userToken}/>)
+            return (<NotificationFriendRequest notification={item} colors={colors} userToken={userToken} removeNotification={(id) => {removeNotification(id)}}/>)
         }
         else if(item.type === 'friend_accept'){
-            return (<NotificationFriendAccept notification={item} colors={colors} userToken={userToken}/>)
+            return (<NotificationFriendAccept notification={item} colors={colors} userToken={userToken} removeNotification={(id) => {removeNotification(id)}}/>)
         }
     }
 
     const performRefresh = async () => {
         setRefreshing(true);
-        const notifications_ = await getNotificationsFromApi(userToken);
-        if(notifications_){
-            setNotificationsCount(notifications_.length);
-            setNotifications(notifications_);
-            setRefreshing(false);
-        }
+        setNotificationsTask( await getNotificationsFromApi(userToken));
+        setRefreshing(false);
     }
 
-    useEffect(() => {
-        if(!visible){
+    React.useEffect(() => {
+        if(userData.has_notifications){
             performRefresh();
         }
-    },[visible]);
+    },[]);
 
     return (
         <Modal
+            presentationStyle='pageSheet'
             animationType="slide"
             transparent={false}
             visible={visible}
@@ -165,17 +250,17 @@ const NotificationsModal = ({visible, onRequestToClose, userData, userToken}) =>
             }}
             style={styles.helpModal}
         >
-            <SafeAreaView style={[{flex:1, position:'relative'}, colors.bkgWhite]} edges={['top']}>
-                <View style={styles.helpHeader}>
-                    <Text style={[styles.helpHeaderText, colors.textBlack]}>Notifications</Text>
-                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => {onRequestToClose();}}>
-                        <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
+            <View style={[{flex:1, position:'relative'}, colors.bkgWhite]}>
+                <View style={[styles.modalHeader, colors.borderGrey]}>
+                    <Text style={[styles.modalHeaderText, colors.textBlack]}>Notifications</Text>
+                    <TouchableOpacity style={[styles.modalHeaderButton, styles.fontBold, colors.textBlack]} onPress={() => onRequestToClose() }>
+                        <Ionicons style={[styles.modalHeaderButtonText]} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
                 </View>
                 {notificationsCount > 0 ? (
                     <FlatList
-                        style={thisStyles.friendsList}
-                        contentContainerStyle={thisStyles.friendsList}
+                        style={[thisStyles.friendsList]}
+                        contentContainerStyle={[thisStyles.friendsList, {borderTopWidth:1,}, colors.borderGrey]}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{performRefresh()}}/>}
                         data={notifications} renderItem={notificationTemplate} keyExtractor={item => item.id} />
                 ) : (
@@ -184,7 +269,7 @@ const NotificationsModal = ({visible, onRequestToClose, userData, userToken}) =>
                         <Text style={[styles.listEmptyText, colors.textGrey1]}>You don't have any notifications! </Text>
                     </View>
                 )}
-            </SafeAreaView>
+            </View>
         </Modal>
     );
 };
@@ -198,6 +283,7 @@ const thisStyles = StyleSheet.create({
         paddingHorizontal:20,
         height:100,
         borderBottomWidth:1,
+
         flexDirection:'row',
     },
     notifyWrap:{
@@ -215,14 +301,15 @@ const thisStyles = StyleSheet.create({
         flex:1,
         paddingTop:5,
         paddingHorizontal:5,
-        fontSize:18,
+        fontSize:16,
         textAlignVertical: 'center',
         lineHeight:22,
         textAlign:'left',
     },
     notifyButtons:{
         flex:1,
-        flexDirection:'row'
+        flexDirection:'row',
+        paddingTop:5,
     },
     notifyButton:{
         borderRadius:10,

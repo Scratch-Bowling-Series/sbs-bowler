@@ -5,42 +5,73 @@ export const colorStylesLight = StyleSheet.create({
     logoTint:{ tintColor: '#214031'},
 
     bkgWhite:{ backgroundColor: '#fff'},
+    bkgGrey:{ backgroundColor: '#e0e0e0'},
     bkgGrey1:{ backgroundColor: '#e8e8e8'},
     bkgGrey2:{ backgroundColor: '#4d4d4d'},
     bkgGrey3:{ backgroundColor: '#e3e3e3'},
     bkgGrey4:{ backgroundColor: '#262626'},
     bkgGrey5:{ backgroundColor: '#1e1e1e'},
     bkgGrey6:{ backgroundColor: '#131313'},
+    bkgRed:{ backgroundColor: '#ff4e4e'},
+    bkgTan:{ backgroundColor: '#d9af62'},
 
     textWhite:{ color: '#fff'},
     textBlack:{ color: '#000'},
     textGrey:{ color: 'grey'},
     textGrey1:{ color: 'lightgrey'},
+    textGrey2:{ color: 'grey'},
+    textGrey3:{ color: '#565656'},
+    textTan:{color:'#d9af62'},
+    textRed:{ color: '#b64343'},
+    textGreen:{ color: '#40af57'},
 
     borderBlack:{ borderColor: '#000'},
     borderWhite:{ borderColor: '#fff'},
-    borderGrey:{ borderColor: '#e0e0e0'}
+    borderGrey:{ borderColor: '#e0e0e0'},
+    borderTan:{ borderColor:'#d9af62'},
+
+    bkgSilver:{ backgroundColor:'#d7d7d7'},
+    bkgBronze:{ backgroundColor:'#c9752e'},
+    borderBronze:{ borderColor:'#c9752e'},
+    borderSilver:{ borderColor:'#d7d7d7'},
+    shadowGrey:{shadowColor:'#b0b0b0',textShadowColor:'#b0b0b0'},
 });
 export const colorStylesDark = StyleSheet.create({
     bkgGreen1:{ backgroundColor: '#0a0a0a'},
     logoTint:{ tintColor: '#ffffff'},
 
     bkgWhite:{ backgroundColor: '#1e1e1e'},
+    bkgGrey:{ backgroundColor: '#3d3d3d'},
     bkgGrey1:{ backgroundColor: '#000'},
     bkgGrey2:{ backgroundColor: '#4d4d4d'},
     bkgGrey3:{ backgroundColor: '#3a3a3a'},
     bkgGrey4:{ backgroundColor: '#262626'},
     bkgGrey5:{ backgroundColor: '#1e1e1e'},
     bkgGrey6:{ backgroundColor: '#131313'},
+    bkgRed:{ backgroundColor: '#8c3333'},
+    bkgTan:{ backgroundColor: '#d9af62'},
 
     textWhite:{ color: '#000'},
     textBlack:{ color: '#ffffff'},
+    textTan:{color:'#d9af62'},
     textGrey:{ color: '#e8e8e8'},
     textGrey1:{ color: 'grey'},
+    textGrey2:{ color: 'grey'},
+    textGrey3:{ color: '#cecece'},
+    textRed:{ color: '#b64343'},
+    textGreen:{ color: '#40af57'},
 
     borderBlack:{ borderColor: '#383838'},
     borderWhite:{ borderColor: '#000'},
-    borderGrey:{ borderColor: '#3d3d3d'}
+    borderGrey:{ borderColor: '#3d3d3d'},
+    borderTan:{ borderColor:'#d9af62'},
+
+
+    bkgSilver:{ backgroundColor:'#d7d7d7'},
+    bkgBronze:{ backgroundColor:'#ad6c33'},
+    borderBronze:{ borderColor:'#ad6c33'},
+    borderSilver:{ borderColor:'#d7d7d7'},
+    shadowGrey:{ shadowColor:'#3d3d3d', textShadowColor:'#3d3d3d'},
 });
 export const styles = StyleSheet.create({
     fontReg:{fontFamily: 'TTOctosquaresCondRegular',},
@@ -55,6 +86,10 @@ export const styles = StyleSheet.create({
         fontFamily: 'TTOctosquaresCondBold',
         color:'lightgrey',
     },
+
+    blockWrap:{
+
+    },
     block:{
         marginHorizontal: 10,
         marginTop: 10,
@@ -63,11 +98,43 @@ export const styles = StyleSheet.create({
     },
     blockHeader:{
         fontSize: 20,
-        marginLeft:20,
         marginTop:20,
         height:20,
         color: '#000',
+        textAlign:'center',
     },
+    blockHeaderLeft:{
+        fontSize: 20,
+        marginTop:20,
+        marginLeft:25,
+        height:20,
+        color: '#000',
+        textAlign:'left',
+    },
+
+    tabButton:{
+    },
+    tabButtonIcon:{
+        textAlign:'center',
+    },
+    tabButtonText:{
+        fontSize:10,
+        textAlign:'center',
+    },
+    tabButtonCenter:{
+
+        padding:10,
+        paddingHorizontal:17,
+        borderRadius:999,
+    },
+    tabButtonCenterIcon:{
+        textAlign:'center',
+    },
+    tabButtonCenterText:{
+        fontSize:10,
+        textAlign:'center',
+    },
+
     buttonBar:{
         flexDirection: 'row',
         justifyContent: 'center',
@@ -78,17 +145,16 @@ export const styles = StyleSheet.create({
         borderRadius: 15,
         marginHorizontal:10,
         marginBottom:10,
-        backgroundColor: '#214031',
         textAlign: 'center',
         alignItems: 'center',
         justifyContent: 'center',
     },
     buttonFull:{
+
         flex:1,
         borderRadius: 15,
         marginHorizontal:10,
         marginBottom:10,
-        backgroundColor: '#214031',
         textAlign: 'center',
         alignItems: 'center',
         justifyContent: 'center',
@@ -102,6 +168,19 @@ export const styles = StyleSheet.create({
         paddingVertical:10,
         paddingHorizontal: 20,
     },
+    signoutButton:{
+        marginBottom:20,
+        textAlign:'center',
+    },
+    signoutButtonText:{
+        textAlign: 'center',
+        paddingVertical:10,
+        paddingHorizontal: 20,
+        fontSize:18,
+        fontFamily: 'TTOctosquaresCondRegular',
+    },
+
+
     buttonList:{
         margin:5,
         borderRadius:10,
@@ -125,6 +204,63 @@ export const styles = StyleSheet.create({
 
     container:{
         flex: 1,
+    },
+    profileModify:{
+        flex:1,
+    },
+    locationInputContainer:{
+        marginHorizontal: 20,
+        position:'relative',
+        height:'auto',
+        flex: 0,
+        zIndex:200,
+    },
+    locationListView:{
+        position:'absolute',
+        top:'100%',
+        right:0,left:0,
+        borderRadius:15,
+        overflow:'hidden',
+    },
+    locationListRow:{
+        zIndex:200,
+    },
+    locationInput:{
+        fontSize:18,
+        borderWidth: 2,
+        borderRadius: 15,
+        marginVertical: 10,
+        fontFamily: 'TTOctosquaresCondRegular',
+        color: 'grey',
+        padding:0,
+        height: 'auto',
+        paddingTop:4,
+        paddingHorizontal: 5,
+    },
+    locationInputText:{
+        margin:0,
+        fontSize: 18,
+        color: '#000',
+        textTransform: 'uppercase',
+        fontFamily: 'TTOctosquaresCondRegular',
+        backgroundColor: 'transparent',
+        textAlignVertical: 'center',
+        height: 'auto',
+        padding:0,
+    },
+    buttonLoader:{
+        left:15,
+        position:'absolute',
+    },
+    photoButton:{
+        borderRadius: 15,
+        marginVertical:10,
+        marginHorizontal:20,
+        textAlign: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth:2,
+        borderColor: '#000',
     },
     profilePreviewTop:{
         flexDirection:'row',
@@ -334,7 +470,29 @@ export const styles = StyleSheet.create({
         tintColor: '#234434'
     },
 
-
+    modalHeader:{
+        height:65,
+        flexDirection:'row',
+        overflow:'hidden',
+    },
+    modalHeaderText:{
+        height:25,
+        flex:1,
+        fontSize:30,
+        marginVertical:22.5,
+        paddingHorizontal:22.5,
+        lineHeight:30,
+    },
+    modalHeaderButton:{
+        height:65,
+        width:65,
+        justifyContent:'center',
+        textAlign:'center',
+    },
+    modalHeaderButtonText:{
+        flex:1,
+        padding:16.5,
+    },
 
     helpModal:{
 
@@ -354,7 +512,7 @@ export const styles = StyleSheet.create({
         color: '#000',
         fontSize: 35,
         fontFamily: 'TTOctosquaresCondBold',
-        paddingVertical:10,
+        paddingVertical:20,
         paddingLeft:20,
     },
     helpBody: {
@@ -373,6 +531,7 @@ export const styles = StyleSheet.create({
         borderColor: 'grey',
         borderRadius: 15,
         margin: 10,
+        marginHorizontal:20,
         paddingHorizontal: 15,
         paddingVertical: 10,
         fontFamily: 'TTOctosquaresCondRegular',

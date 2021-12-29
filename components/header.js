@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState} from 'react';
-import {StyleSheet, View, Image, TouchableOpacity,useColorScheme } from 'react-native';
+import {StyleSheet, View, Image, TouchableOpacity,useColorScheme,SafeAreaView} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {StatusBar} from "expo-status-bar";
 import SettingsModal from "./settingsModal";
@@ -11,18 +11,19 @@ import defaultProfilePhoto from '../assets/profile-default.png';
 import {colorStylesLight, colorStylesDark} from './styles';
 import UserContext from "./context/userContext";
 import NotificationsModal from "./notificationsModal";
+import AuthContext from "./context/authContext";
 
 
-const Header = ({onProfile, navigation}) =>  {
+const Header = ({route, navigation, userData, userToken}) =>  {
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [notificationsVisible, setNotificationsVisible] = useState(false);
 
     const colorScheme = useColorScheme();
-    const [userData, userToken] = useContext(UserContext);
+    const { updateUserData } = React.useContext(AuthContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
-        <View style={styles.headerWrap}>
+        <SafeAreaView style={[styles.headerWrap, colors.bkgGrey1]} edges={['top']}>
             <View style={[styles.header, colors.bkgGreen1 ]}>
                 { colorScheme === 'light' ? (
                     <Image source={topBarGraphic} style={[styles.headerLines]}/>
@@ -34,7 +35,7 @@ const Header = ({onProfile, navigation}) =>  {
                     { userData.has_notifications ? (<View style={styles.headerButtonNotify} />): null}
                     <Ionicons style={styles.headerButtonText} name="notifications-outline" size={30} color="#fff" />
                 </TouchableOpacity>
-                { !onProfile ? (
+                { route.name !== 'Profile' ? (
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Image style={styles.headerButtonImage} source={ userData ?{ uri: userData.picture } : defaultProfilePhoto}/>
                     </TouchableOpacity>
@@ -46,7 +47,7 @@ const Header = ({onProfile, navigation}) =>  {
                     <SettingsModal visible={settingsVisible} onRequestToClose={() => {setSettingsVisible(false)}}/>
                     <NotificationsModal visible={notificationsVisible}
                                         onRequestToClose={() =>{setNotificationsVisible(false)}}
-                                        userData={userData} userToken={userToken}/>
+                                        userData={userData} userToken={userToken} onUpdateUserData={(data)=>{updateUserData(data);}}/>
                 { colorScheme === 'light' ? (
                     <StatusBar style='dark' />
                 ):(
@@ -54,7 +55,7 @@ const Header = ({onProfile, navigation}) =>  {
                     )
                 }
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
 
     headerWrap:{
         height:65,
-        paddingTop: 0,
+        paddingTop: 25,
     },
     header:{
         height:65,

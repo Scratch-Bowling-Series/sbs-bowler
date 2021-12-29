@@ -1,78 +1,118 @@
-import React, {Component, useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import {SafeAreaView} from "react-native-safe-area-context";
-import Header from "../header";
-import {StyleSheet, Text, useColorScheme, View, Image} from "react-native";
-import {colorStylesLight, colorStylesDark} from '../styles';
+import {StyleSheet, Text, useColorScheme, View, Image, TouchableOpacity, RefreshControl} from "react-native";
+import {colorStylesLight, colorStylesDark, styles} from '../styles';
 import UserContext from "../context/userContext";
-import AuthContext from "../context/authContext";
 import { Dimensions } from 'react-native';
+import LastTournament from "../lastTournament";
+import SeasonStats from "../seasonStats";
+import CareerStats from "../careerStats";
+import {ScrollView} from "react-native-gesture-handler";
+import VerifyEmail from "../verifyEmail";
+import LeaderboardPreview from "../leaderboardPreview";
 
 const base_url = 'http://10.0.0.211:8000';
-const sbsLogo = require('../../assets/logo-beta.png');
-const topBarGraphic = require('../../assets/top-bar.png');
-const defaultProfilePhoto = require('../../assets/profile-default.png');
-const welcomeDesign= require('../../assets/welcome-design.png');
 const adImage = require('../../assets/ad-example.png');
-const adImageTwo = require('../../assets/ad-example-2.png');
 
 const HomeScreen = ({navigation}) => {
+    const [refreshing, setRefreshing] = React.useState(false);
     const colorScheme = useColorScheme();
     const [userData, userToken] = useContext(UserContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     const [adsImage,setAdImage] = React.useState(null)
 
+    const [lastTournament, setLastTournament] = React.useState(false);
+    const openTournament = (tournamentId) => {
+        console.log(tournamentId);
+    }
+
+    const refresh = () => {
+
+    }
+
     React.useEffect(() => {
-        const random = Math.floor(Math.random() * 11);
-        if(random > 5){
-            setAdImage(adImage);
-        }
-        else{
-            setAdImage(adImageTwo);
-        }
+        setAdImage(adImage);
+
+        setLastTournament({'id': 5});
+
     },[])
 
     return (
-        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header navigation={navigation}/>
-            <View style={styles.container}>
-                <View style={styles.adWrap}>
-                    <Image style={styles.ad} source={adsImage}/>
+        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]} edges={['top']}>
+        <View style={styles.container}>
+            <ScrollView
+                contentContainerStyle={styles.scrollView}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh()}/>}>
+
+                <VerifyEmail colors={colors}
+                             visible={!userData.is_verified}
+                             onRequestToResend={() => {}}
+                />
+                <LeaderboardPreview navigation={navigation}
+                                colors={colors}
+                                tournament={lastTournament}
+                                onPress={(tournamentId) => { openTournament(tournamentId)}}
+                />
+                <LastTournament navigation={navigation}
+                                colors={colors}
+                                tournament={lastTournament}
+                                onPress={(tournamentId) => { openTournament(tournamentId)}}
+                />
+                <View style={thisStyles.adWrap}>
+                    <Image style={thisStyles.ad} source={adsImage}/>
                 </View>
-                <Text style={styles.screenEmpty}>UUID:{userData.id} TOKEN:{ userToken }</Text>
-            </View>
+                <SeasonStats navigation={navigation}
+                                colors={colors}
+                                tournament={lastTournament}
+                                onPress={(tournamentId) => { openTournament(tournamentId)}}
+                />
+                <CareerStats navigation={navigation}
+                             colors={colors}
+                             tournament={lastTournament}
+                             onPress={(tournamentId) => { openTournament(tournamentId)}}
+                />
+
+                <Text style={thisStyles.debug}>UUID: { userData.id }</Text>
+            </ScrollView>
+        </View>
         </SafeAreaView>
     );
 }
 
 const windowWidth = Dimensions.get('window').width;
 
-const styles = StyleSheet.create({
-    safeAreaView:{
-        flex: 1,
+const thisStyles = StyleSheet.create({
+    topNotifyText:{
+        fontSize:18,
+        padding:20,
+        textAlign:'center'
     },
-    container:{
-        flex: 1,
-    },
-    screenEmpty:{
-        fontSize:15,
+
+
+
+    debug:{
+        fontSize:12,
         fontFamily: 'TTOctosquaresCondBold',
-        color:'lightgrey',
+        color:'grey',
         margin:20,
+        paddingHorizontal:20,
+        textAlign:'center',
     },
     adWrap:{
-        margin:10,
+        marginTop:10,
+        marginHorizontal:10,
         width: windowWidth - 20,
-        height: (windowWidth - 20) / 2,
+        height: undefined,
+        aspectRatio:4,
         overflow:'hidden',
-        backgroundColor:'orange',
         borderRadius:10,
     },
     ad:{
         flex:1,
-        width: windowWidth - 20,
+        height:undefined,
+        aspectRatio:4,
         resizeMode:'contain',
     }
-
 
 });
 

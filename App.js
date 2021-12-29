@@ -1,49 +1,42 @@
 
-import React, {Component, useEffect, useState} from 'react';
+import React from 'react';
 import {
     StyleSheet,
     Text,
     View,
-    Image,
     Platform,
-    Alert,
     TouchableOpacity,
     TextInput,
     KeyboardAvoidingView,
     useColorScheme,
-    ActivityIndicator
+    ActivityIndicator,
+    Linking
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Video, AVPlaybackStatus } from 'expo-av';
-
+import { Video } from 'expo-av';
+import ProfileScreen from "./components/screens/profileScreen";
+import * as Notifications from "expo-notifications";
+import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFonts} from "expo-font";
 import Header from "./components/header";
 import LoginTop from "./components/loginTop";
-import {colorStylesLight, colorStylesDark} from './components/styles';
+import {colorStylesLight, colorStylesDark, styles} from './components/styles';
 import HomeScreen from "./components/screens/homeScreen";
 
 
 import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/authContext";
 import UserContext, {UserProvider, UserConsumer} from "./components/context/userContext";
 import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
+import GameScreen from "./components/screens/gameScreen";
 
 const base_url = 'http://10.0.0.211:8000';
 
-const sbsLogo = require('./assets/logo-beta.png');
-const topBarGraphic = require('./assets/top-bar.png');
-const defaultProfilePhoto = require('./assets/profile-default.png');
-const welcomeDesign= require('./assets/welcome-design.png');
-import splashScreen from './assets/splash.png';
-
-import ProfileScreen from "./components/screens/profileScreen";
-import * as Notifications from "expo-notifications";
-import * as Device from 'expo-device';
 
 function WelcomeScreen({ navigation }) {
     const colorScheme = useColorScheme();
@@ -132,36 +125,32 @@ function SignupScreen({navigation, loginError, applying}) {
         </KeyboardAvoidingView>
     );
 }
-
-
 function TournamentsScreen({navigation, token}) {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header navigation={navigation}/>
+
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO TOURNAMENTS</Text>
             </View>
         </SafeAreaView>
     );
 }
-function LiveScreen({navigation, token}) {
+function LiveScreen({navigation}) {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return (
         <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-            <Header navigation={navigation}/>
+
             <View style={styles.container}>
                 <Text style={styles.screenEmpty}>NO LIVE STREAMS</Text>
             </View>
         </SafeAreaView>
     );
 }
-
-
 function SplashScreen({setSplashFinished}){
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' || true ? colorStylesLight : colorStylesDark;
@@ -181,17 +170,6 @@ function SplashScreen({setSplashFinished}){
         </View>
     );
 }
-function SettingsScreen() {
-    return (
-        <SafeAreaView
-            style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text>Settings Screen</Text>
-            </View>
-        </SafeAreaView>
-    );
-}
-
 
 
 const validateUserToken = async (token) => {
@@ -292,11 +270,12 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const App = () =>  {
-    const [expoPushToken, setExpoPushToken] = useState('');
-    const [notification, setNotification] = useState(false);
+    const [expoPushToken, setExpoPushToken] = React.useState('');
+    const [notification, setNotification] = React.useState(false);
     const notificationListener = React.useRef();
     const responseListener = React.useRef();
-
+    const colorScheme = useColorScheme();
+    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     const [settings, setSettings] = React.useState({'autoGameMode': true, 'sendDiagData': false});
     const [applying, setApplying] = React.useState(false);
     const [state, dispatch] = React.useReducer(
@@ -350,7 +329,64 @@ const App = () =>  {
         }
     );
 
-    const colorScheme = useColorScheme();
+    const linking = {
+        prefixes: ['https://bowler.scratchbowling.com', 'exps://bowler.scratchbowling.com'],
+
+    };
+
+
+    const mainScreenOptions = ({ route }) => ({
+        header: (props) => <Header {...props} userData={state.userData} userToken={state.userToken}/>,
+        headerShown: true,
+        tabBarShowLabel: false,
+        tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+                iconName = 'home-outline'
+            } else if (route.name === 'Tournaments') {
+                iconName = 'list-outline';
+            } else if (route.name === 'Live') {
+                iconName = 'tv-outline';
+            } else if (route.name === 'Profile') {
+                iconName = 'person-circle-outline';
+            } else if (route.name === 'Game') {
+                iconName = 'ios-game-controller';
+            }
+
+            if(route.name === 'Game'){
+                return (
+                    <View style={[styles.tabButtonCenter, colors.bkgGreen1]}>
+                        <Ionicons style={[styles.tabButtonCenterIcon, {color: focused ? '#d9af62' : '#fff'}]} name={iconName} size={size} color={color} />
+                        <Text style={[styles.tabButtonCenterText, styles.fontBold, {color: focused ? '#d9af62' : '#fff'}]}>{route.name}</Text>
+                    </View>
+                );
+            }
+
+            // You can return any component that you like here!
+            return (
+                <View style={[styles.tabButton]}>
+                    <Ionicons style={[styles.tabButtonIcon,{color: focused ? '#d9af62' : 'grey'}]} name={iconName} size={size} color={color} />
+                    <Text style={[styles.tabButtonText, styles.fontBold, {color: focused ? '#d9af62' : 'grey'}]}>{route.name}</Text>
+                </View>
+            );
+        },
+        tabBarStyle:{
+            borderTopColor: colorScheme === 'light' ? '#adadad' : '#1e1e1e',
+            backgroundColor: colorScheme === 'light' ? '#ffffff' : '#131313',
+        },
+
+        tabBarActiveTintColor: colorScheme === 'light' ? '#d9af62' : '#fff' ,
+        tabBarInactiveTintColor: route.name !== 'Game' ? 'grey' : '#fff',
+        backgroundColor:'red',
+    });
+    const gameScreenOptions = {
+        headerShown:false,
+    };
+    const welcomeScreenOptions = ({ route }) => ({ headerShown: false,});
+
+
+
 
     React.useEffect(() => {
         const getSettings = async () => {
@@ -497,14 +533,14 @@ const App = () =>  {
         []
     );
 
-    const [loaded] = useFonts({
+    const [fontsLoaded] = useFonts({
         TTOctosquaresCondRegular: require('./assets/fonts/TTOctosquaresCond-Regular.otf'),
         TTOctosquaresCondBlack: require('./assets/fonts/TTOctosquaresCond-Black.otf'),
         TTOctosquaresCondBold: require('./assets/fonts/TTOctosquaresCond-Bold.otf'),
     });
 
     const [splashFinished, setSplashFinished] = React.useState(false);
-    if (state.isLoading || !loaded || !splashFinished) {
+    if (state.isLoading || !fontsLoaded || !splashFinished) {
         return <SplashScreen setSplashFinished={setSplashFinished}/>;
     }
 
@@ -514,9 +550,9 @@ const App = () =>  {
           <AuthProvider value={authContext}>
               <UserProvider value={[state.userData, state.userToken]}>
                   <SafeAreaProvider>
-                      <NavigationContainer>
+                      <NavigationContainer linking={linking}>
                           {state.userToken == null || state.userData == null ? (
-                              <Stack.Navigator initialRouteName="Welcome" screenOptions={({ route }) => ({ headerShown: false,})} >
+                              <Stack.Navigator initialRouteName="Welcome" screenOptions={welcomeScreenOptions} >
                                   <Stack.Screen name="Welcome" component={WelcomeScreen}/>
                                   <Stack.Screen name="Login">
                                       {(props) => <LoginScreen {...props} loginError={state.loginError} applying={applying}/>}
@@ -526,42 +562,21 @@ const App = () =>  {
                                   </Stack.Screen>
                               </Stack.Navigator>
                           ) : (
-                              <Tab.Navigator initialRouteName="Home" screenOptions={({ route }) => ({
-                                  //header: (props) => <Header {...props} userData={state.userData}/>,
-                                  headerShown: false,
-                                  tabBarIcon: ({ focused, color, size }) => {
-                                      let iconName;
-
-                                      if (route.name === 'Home') {
-                                          iconName = 'home-outline'
-                                      } else if (route.name === 'Tournaments') {
-                                          iconName = 'list-outline';
-                                      } else if (route.name === 'Live') {
-                                          iconName = 'tv-outline';
-                                      } else if (route.name === 'Profile') {
-                                          iconName = 'person-circle-outline';
-                                      }
-                                      // You can return any component that you like here!
-                                      return <Ionicons name={iconName} size={size} color={color} />;
-                                  },
-                                  tabBarStyle: {
-                                    backgroundColor: colorScheme === 'light' ? '#fff' : '#131313',
-                                    borderTopColor: colorScheme === 'light' ? '#fff' : '#131313',
-                                  },
-                                  tabBarActiveTintColor: colorScheme === 'light' ? '#d9af62' : '#fff' ,
-                                  tabBarInactiveTintColor: 'grey',
-                              })}>
+                              <Tab.Navigator initialRouteName="Home" screenOptions={mainScreenOptions} >
                                   <Tab.Screen name="Home" >
-                                      {(props) => <HomeScreen {...props} token={state.userToken}/>}
+                                      {(props) => <HomeScreen {...props} />}
                                   </Tab.Screen>
                                   <Tab.Screen name="Tournaments" >
-                                      {(props) => <TournamentsScreen {...props} token={state.userToken}/>}
+                                      {(props) => <TournamentsScreen {...props} />}
+                                  </Tab.Screen>
+                                  <Tab.Screen name="Game" options={gameScreenOptions}>
+                                      {(props) => <GameScreen {...props} />}
                                   </Tab.Screen>
                                   <Tab.Screen name="Live">
-                                      {(props) => <LiveScreen {...props} token={state.userToken}/>}
+                                      {(props) => <LiveScreen {...props} />}
                                   </Tab.Screen>
                                   <Tab.Screen name="Profile">
-                                      {(props) => <ProfileScreen {...props} token={state.userToken}/>}
+                                      {(props) => <ProfileScreen {...props} />}
                                   </Tab.Screen>
                               </Tab.Navigator>
                           )}
@@ -616,7 +631,7 @@ async function registerForPushNotificationsAsync() {
 
 
 
-const styles = StyleSheet.create({
+const thisStyles = StyleSheet.create({
     safeAreaView:{
         flex: 1,
     },

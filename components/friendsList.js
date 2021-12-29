@@ -16,10 +16,27 @@ const getFriendsListFromApi = async (token) => {
         },
     });
     const jsonData = await response.json();
-    console.log(jsonData);
     return jsonData ? jsonData[0] : null
 }
-
+const removeFriendWithApi = async (token, friendId) => {
+    try{
+        const formData = new FormData();
+        formData.append('friend_id', friendId);
+        let response = await fetch(base_url + '/api/user/friend/remove/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': 'Token ' + token,
+                credentials: 'include',
+            },
+            body: formData
+        });
+        const jsonData = await response.json();
+        return jsonData ? jsonData.success : false;
+    }catch(errors){
+        console.log(errors);
+    }
+}
 
 const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefreshing}) =>  {
     const [friendFinderVisible, setFriendFinderVisible] = React.useState(false);
@@ -38,12 +55,11 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
         setRefreshingSelf(true);
         const friendsList_ = await getFriendsListFromApi(userToken);
         if(friendsList_){
-            console.log(friendsList_);
             setFriendsList(friendsList_.friends);
             setFriendCount(friendsList_.friends.length);
             setFriendRequestListInbound(friendsList_.requests);
             setFriendRequestListOutbound(friendsList_.sent);
-        }else{ setFriendCount(0)}
+        }else{ setFriendCount(0); }
         setRefreshingSelf(false);
     }
 
@@ -55,9 +71,19 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
         }
     },[shouldRefresh]);
 
+    const headerTextPressed = () => {
+
+    }
+    const removeFriend = (id) => {
+        setFriendsList(friendsList.filter(item => item.id !== id));
+        removeFriendWithApi(userToken, id);
+    }
+
     return (
         <View style={[styles.block, colors.bkgWhite, {flexDirection: friendCount === 0 ? 'row': 'column'}]}>
-            <Text style={[styles.blockHeader, styles.fontBold, colors.textBlack,{paddingLeft:10,width:'auto',lineHeight: friendCount === 0 ? 40: 20, height: friendCount === 0 ? 40: 20}]}>FRIENDS ({friendCount})</Text>
+            <TouchableOpacity onPress={() => { if(friendCount === 0){setFriendAllVisible(true)} }} disabled={friendCount > 0}>
+                <Text style={[styles.blockHeaderLeft, styles.fontBold, colors.textBlack,{paddingLeft:10,width:'auto',lineHeight: friendCount === 0 ? 40: 20, height: friendCount === 0 ? 40: 20}]}>FRIENDS ({friendCount})</Text>
+            </TouchableOpacity>
             <View style={[thisStyles.friendsListContainer]}>
                 {friendsList ? friendsList.slice(0,5).map(friend => {
                     return(
@@ -98,6 +124,7 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
                              refreshing={refreshingSelf}
                              userData={userData} userToken={userToken}
                              friendsList={friendsList} friendCount={friendCount}
+                             removeFriend={(id) => {removeFriend(id)}}
             />
         </View>
     );

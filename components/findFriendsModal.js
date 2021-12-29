@@ -181,6 +181,7 @@ const FindFriendsModal = ({visible, onRequestToClose, userData, userToken, frien
 
     return (
         <Modal
+            presentationStyle='pageSheet'
             animationType="slide"
             transparent={false}
             visible={visible}
@@ -190,18 +191,18 @@ const FindFriendsModal = ({visible, onRequestToClose, userData, userToken, frien
             }}
             style={styles.helpModal}>
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]} edges={['top']}>
-                <View style={styles.helpHeader}>
-                    <Text style={[styles.helpHeaderText, colors.textBlack]}>Find Friends</Text>
-                    <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => onRequestToClose() }>
-                        <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
+                <View style={styles.modalHeader}>
+                    <Text style={[styles.modalHeaderText, styles.fontBold, colors.textBlack]}>Find Friends</Text>
+                    <TouchableOpacity style={[styles.modalHeaderButton, colors.textBlack]} onPress={() => onRequestToClose() }>
+                        <Ionicons style={[styles.modalHeaderButtonText]} name="close"  size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
                 </View>
                 <TextInput style={[styles.profileInput, colors.borderBlack, colors.textBlack]} placeholder="Search by Name" placeholderTextColor={placeHolderColor} value={friendSearch} onChangeText={ text => { textChanged(text); }}/>
 
                 {friendsList && friendsList.length > 0? (
                     <FlatList
-                        style={thisStyles.friendsList}
-                        contentContainerStyle={thisStyles.friendsList}
+                        style={[thisStyles.friendsList]}
+                        contentContainerStyle={[thisStyles.friendsList, {borderTopWidth:1,}, colors.borderGrey]}
                         data={friendsList} extraData={reRenderList} renderItem={friendTemplate} keyExtractor={item => item.id} />
                 ) : (
                     <View style={styles.listEmpty}>

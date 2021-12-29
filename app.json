@@ -18,13 +18,18 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to scan barcodes on event tickets."
+      },
+      "bundleIdentifier": "com.scratchbowlingseries.sbsbowler"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#244535"
-      }
+      },
+      "package": "com.scratchbowlingseries.sbsbowler"
     },
     "web": {
       "favicon": "./assets/favicon.png"
