@@ -27,7 +27,7 @@ const sbsLogo = require('../assets/logo-beta.png');
 const topBarGraphic = require('../assets/top-bar.png');
 const defaultProfilePhoto = require('../assets/profile-default.png');
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
 const getNotificationsFromApi = async (token) => {

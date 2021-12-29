@@ -24,7 +24,7 @@ import {
     MenuOption,
 } from 'react-native-popup-menu';
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
 

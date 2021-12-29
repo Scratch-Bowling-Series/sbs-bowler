@@ -35,7 +35,7 @@ import UserContext, {UserProvider, UserConsumer} from "./components/context/user
 import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
 import GameScreen from "./components/screens/gameScreen";
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
 function WelcomeScreen({ navigation }) {

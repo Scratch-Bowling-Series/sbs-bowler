@@ -17,7 +17,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {colorStylesDark, colorStylesLight, styles} from "./styles";
 
 const defaultProfilePhoto = require('../assets/profile-default.png');
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 
 

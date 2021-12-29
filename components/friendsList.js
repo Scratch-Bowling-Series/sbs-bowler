@@ -3,7 +3,7 @@ import {StyleSheet, View, Image, TouchableOpacity, useColorScheme, Text, Activit
 import {colorStylesLight, colorStylesDark, styles} from './styles';
 import AllFriendsModal from "./allFriendsModal";
 import FindFriendsModal from "./findFriendsModal";
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://scratchbowling.pythonanywhere.com';
 
 const getFriendsListFromApi = async (token) => {
     let response = await fetch(base_url + '/api/user/friends/', {
