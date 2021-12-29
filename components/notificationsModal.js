@@ -252,7 +252,7 @@ const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onU
         >
             <View style={[{flex:1, position:'relative'}, colors.bkgWhite]}>
                 <View style={[styles.modalHeader, colors.borderGrey]}>
-                    <Text style={[styles.modalHeaderText, colors.textBlack]}>Notifications</Text>
+                    <Text style={[styles.modalHeaderText, colors.textBlack, styles.fontBold]}>Notifications</Text>
                     <TouchableOpacity style={[styles.modalHeaderButton, styles.fontBold, colors.textBlack]} onPress={() => onRequestToClose() }>
                         <Ionicons style={[styles.modalHeaderButtonText]} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>
