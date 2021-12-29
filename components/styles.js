@@ -555,5 +555,53 @@ export const styles = StyleSheet.create({
         color:'#e8e8e8',
     },
 
+    settingsItems:{
+        flex:1,
+    },
+    settingsItem:{
+        flexDirection: 'row',
+    },
+    settingsItemName:{
+        flex:1,
+        margin:20,
+        fontSize: 17,
+        padding:5,
+        fontFamily: 'TTOctosquaresCondBold',
+    },
+    settingsSwitch:{
+        margin:20,
+        alignSelf: 'flex-end',
+    },
+    settingsVersion:{
+        fontSize:14,
+        color: 'grey',
+        fontFamily: 'TTOctosquaresCondRegular',
+        textAlign: 'center',
+        alignSelf:'flex-end',
+        width: '100%',
+    },
+    settingsWeb:{
+        paddingVertical:5,
+        fontSize:12,
+        color: 'grey',
+        fontFamily: 'TTOctosquaresCondRegular',
+        textAlign: 'center',
+        alignSelf:'flex-end',
+        width: '100%',
+    },
+    settingsSignOut:{
+        textAlign: 'center',
+        marginBottom:20,
+    },
+    settingsSignOutText:{
+        textAlign: 'center',
+        paddingVertical:10,
+        paddingHorizontal: 20,
+        fontSize:18,
+        fontFamily: 'TTOctosquaresCondRegular',
+    },
+
+
+
 
 });

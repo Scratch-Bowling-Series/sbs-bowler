@@ -19,7 +19,7 @@ import {StatusBar} from "expo-status-bar";
 import {SafeAreaView} from "react-native-safe-area-context";
 import AuthContext from "./context/authContext";
 import UserContext from "./context/userContext";
-import {colorStylesDark, colorStylesLight} from "./styles";
+import {colorStylesDark, colorStylesLight, styles} from "./styles";
 import SettingsContext from "./context/settingsContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 const sbsLogo = require('../assets/logo-beta.png');
@@ -116,82 +116,8 @@ const SettingsModal = ({visible, onRequestToClose}) =>  {
     );
 };
 
-const styles = StyleSheet.create({
-    settingsItems:{
-        flex:1,
-    },
-    settingsItem:{
-        flexDirection: 'row',
-    },
-    settingsItemName:{
-        flex:1,
-        margin:20,
-        fontSize: 17,
-        padding:5,
-        fontFamily: 'TTOctosquaresCondBold',
-    },
-    settingsSwitch:{
-        margin:20,
-        alignSelf: 'flex-end',
-    },
-    settingsVersion:{
-        fontSize:14,
-        color: 'grey',
-        fontFamily: 'TTOctosquaresCondRegular',
-        textAlign: 'center',
-        alignSelf:'flex-end',
-        width: '100%',
-    },
-    settingsWeb:{
-        paddingVertical:5,
-        fontSize:12,
-        color: 'grey',
-        fontFamily: 'TTOctosquaresCondRegular',
-        textAlign: 'center',
-        alignSelf:'flex-end',
-        width: '100%',
-    },
-    settingsSignOut:{
-        textAlign: 'center',
-        marginBottom:20,
-    },
-    settingsSignOutText:{
-        textAlign: 'center',
-        paddingVertical:10,
-        paddingHorizontal: 20,
-        fontSize:18,
-        fontFamily: 'TTOctosquaresCondRegular',
-    },
+const thiStyles = StyleSheet.create({
 
-    helpModal:{
-
-    },
-    helpHeader:{
-        flexDirection: 'row',
-    },
-    helpClose:{
-        flex:1,
-        paddingVertical: 12,
-        textAlign: 'right',
-        alignItems: 'flex-end',
-    },
-    helpHeaderText:{
-        flex:10,
-        color: '#000',
-        fontSize: 35,
-        fontFamily: 'TTOctosquaresCondBold',
-        padding:20,
-    },
-    helpBody: {
-        flex:9,
-    },
-    helpText: {
-        color: '#000',
-        fontSize: 18,
-        fontFamily: 'TTOctosquaresCondBold',
-        paddingHorizontal:30,
-        paddingVertical: 10,
-    },
 });
 
 
