@@ -33,7 +33,7 @@ const ProfileScreen = ({navigation}) => {
                     contentContainerStyle={styles.scrollView}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}>
 
-                    <WalletPreview colors={colors}/>
+                    <WalletPreview userData={userData} colors={colors}/>
                     <ProfilePreview userData={userData} userToken={userToken} shouldRefresh={refreshingPreview} onDoneRefreshing={() => {setRefreshingPreview(false)}}/>
                     <FriendsList userData={userData} userToken={userToken} shouldRefresh={refreshingFriends} onDoneRefreshing={() => {setRefreshingFriends(false)}}/>
                 </ScrollView>

@@ -476,7 +476,7 @@ export const styles = StyleSheet.create({
         overflow:'hidden',
     },
     modalHeaderText:{
-        height:25,
+        height:30,
         flex:1,
         fontSize:30,
         marginVertical:22.5,

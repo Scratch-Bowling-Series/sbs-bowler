@@ -33,8 +33,10 @@
     "react-native": "0.64.3",
     "react-native-google-places-autocomplete": "^2.4.1",
     "react-native-popup-menu": "^0.15.12",
+    "react-native-qrcode-svg": "^6.1.2",
     "react-native-safe-area-context": "3.3.2",
     "react-native-screens": "~3.10.1",
+    "react-native-svg": "12.1.1",
     "react-native-web": "0.17.1",
     "react-navigation": "^4.4.4",
     "react-navigation-fluid-transitions": "^0.3.2"

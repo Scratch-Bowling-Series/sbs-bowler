@@ -79,8 +79,8 @@ const SettingsModal = ({visible, onRequestToClose}) =>  {
             style={styles.helpModal}
         >
             <SafeAreaView style={[{flex:1, position:'relative'}, colors.bkgWhite]}>
-                <View style={styles.helpHeader}>
-                    <Text style={[styles.helpHeaderText, colors.textBlack]}>Settings</Text>
+                <View style={[styles.modalHeader]}>
+                    <Text style={[styles.modalHeaderText, colors.textBlack, styles.fontBold]}>Settings</Text>
                     <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20}, colors.textBlack]} onPress={() => {onRequestToClose(); saveSettings();}}>
                         <Ionicons name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                     </TouchableOpacity>

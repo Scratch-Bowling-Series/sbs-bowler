@@ -1,6 +1,8 @@
 import React from 'react';
 import {StyleSheet, Text, View, TouchableOpacity} from "react-native";
 import {styles} from "./styles";
+import DepositModal from "./depositModal";
+import CashoutModal from "./cashoutModal";
 
 
 
@@ -23,10 +25,12 @@ function nFormatter(num, digits) {
 }
 
 
-const WalletPreview = ({colors, onPress}) =>  {
+const WalletPreview = ({colors, onPress, userData}) =>  {
+    const [depositModalVisible, setDepositModalVisible] = React.useState(false);
+    const [cashoutModalVisible, setCashoutModalVisible] = React.useState(false);
 
-    const total = 509.67;
-    const pending = 22.18;
+    const pending = ((userData.pending_balance  || 0)/100).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    const total = ((userData.balance  || 0)/100).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 
     return(
         <View style={[styles.blockWrap]}>
@@ -43,14 +47,26 @@ const WalletPreview = ({colors, onPress}) =>  {
                     ) : null}
                 </View>
                 <View style={[styles.buttonBar]}>
-                    <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]}>
+                    <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]}
+                                      onPress={() => setDepositModalVisible(true)}
+                    >
                         <Text style={[styles.buttonText, styles.fontBold]}>DEPOSIT</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]}>
+                    <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]}
+                                      onPress={() => setCashoutModalVisible(true)}
+                    >
                         <Text style={[styles.buttonText, styles.fontBold]}>CASH OUT</Text>
                     </TouchableOpacity>
                 </View>
             </TouchableOpacity>
+            <DepositModal visible={depositModalVisible}
+                          onRequestToClose={() => setDepositModalVisible(false)}
+                          userData={userData}
+            />
+            <CashoutModal visible={cashoutModalVisible}
+                          onRequestToClose={() => setCashoutModalVisible(false)}
+                          userData={userData}
+            />
         </View>
     );
 }
