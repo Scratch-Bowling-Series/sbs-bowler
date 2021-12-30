@@ -3,7 +3,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, useColorScheme, View} from "react-native";
 import sbsLogo from "../assets/logo-beta.png";
-import {colorStylesDark, colorStylesLight} from "./styles";
+import {colorStylesDark, colorStylesLight, styles} from "./styles";
 import {StatusBar} from "expo-status-bar";
 
 const LoginHeader = ({navigation}) =>  {
@@ -13,9 +13,9 @@ const LoginHeader = ({navigation}) =>  {
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
 
     return(
-        <SafeAreaView style={styles.loginHeader} edges={['top']}>
-            <Image source={sbsLogo} style={styles.loginLogo}/>
-            <TouchableOpacity style={styles.loginHelp} onPress={() => setModalVisible(true)}>
+        <SafeAreaView style={thisStyles.loginHeader} edges={['top']}>
+            <Image source={sbsLogo} style={thisStyles.loginLogo}/>
+            <TouchableOpacity style={thisStyles.loginHelp} onPress={() => setModalVisible(true)}>
                 <Ionicons name="help-circle-outline" size={32} color="#fff" />
             </TouchableOpacity>
             <Modal
@@ -23,31 +23,47 @@ const LoginHeader = ({navigation}) =>  {
                 transparent={false}
                 visible={modalVisible}
                 onRequestClose={() => {
-                    Alert.alert("Modal has been closed.");
-                    this.setModalVisible(!this.modalVisible);
+
                 }}
-                style={styles.helpModal}
+                style={thisStyles.helpModal}
             >
-                <SafeAreaView style={{flex:1,}}>
-                    <View style={styles.helpHeader}>
-                        <Text style={styles.helpHeaderText}>Need Help?</Text>
-                        <TouchableOpacity style={[styles.helpClose, {paddingHorizontal: 20,}]} onPress={() => setModalVisible(false)}>
-                            <Ionicons name="close" size={32} color="#000" />
+                <SafeAreaView style={[{flex:1,},colors.bkgWhite]}>
+                    <View style={[styles.modalHeader, colors.borderGrey]}>
+                        <Text style={[styles.modalHeaderText, colors.textBlack, styles.fontBold]}>Need Help?</Text>
+                        <TouchableOpacity style={[styles.modalHeaderButton, styles.fontBold, colors.textBlack]} onPress={() => setModalVisible(false) }>
+                            <Ionicons style={[styles.modalHeaderButtonText]} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                         </TouchableOpacity>
                     </View>
-                    <View style={styles.helpBody}>
-                        <Text style={styles.helpText}>We have put together a very useful help center on our website. You can visit it at </Text>
+                    <View style={thisStyles.helpBody}>
+                        <Text style={[thisStyles.helpHeaderText, styles.fontBold, colors.textBlack]}>What is SBS?</Text>
+                        <Text style={thisStyles.helpText}>We have put together a very useful help center on our website. You can visit it at </Text>
                         <TouchableOpacity>
-                            <Text style={[styles.helpText,{color: 'blue'}]}>https://scratchbowling.com/help-center/</Text>
+                            <Text style={[thisStyles.helpText,{color: 'blue'}]}>https://scratchbowling.com/help-center/</Text>
                         </TouchableOpacity>
                     </View>
+                    <View style={{flexDirection:'row', justifyContent: 'center'}}>
+                        <TouchableOpacity style={[styles.settingsSignOut]} onPress={() => console.log('Forgot Password!')}>
+                            <Text style={[styles.settingsSignOutText, colors.textBlack]}>
+                                Forgot Password
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.settingsSignOut]} onPress={() => console.log('Report a bug!')}>
+                            <Text style={[styles.settingsSignOutText, colors.textBlack]}>
+                                Report Bug
+                            </Text>
+                        </TouchableOpacity>
+
+                    </View>
+
+                    <Text style={styles.settingsVersion}>SBS BOWLER - v1.0.0-b</Text>
+                    <Text style={styles.settingsWeb}>SCRATCH BOWLING SERIES</Text>
                 </SafeAreaView>
             </Modal>
             <StatusBar style='light' />
         </SafeAreaView>
     );
 }
-const styles = StyleSheet.create({
+const thisStyles = StyleSheet.create({
     loginContainer:{
         flex: 1,
         backgroundColor: '#214031',
@@ -184,11 +200,8 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     helpHeaderText:{
-        flex:10,
-        color: '#000',
-        fontSize: 35,
-        fontFamily: 'TTOctosquaresCondBold',
-        padding:20,
+        fontSize: 25,
+        padding:30,
     },
     helpBody: {
         flex:9,
