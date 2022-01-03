@@ -316,41 +316,7 @@ export const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
 
-    nav:{
-        flex:2
-    },
-    headerWrap:{
-        height:65,
-        paddingTop: 0,
-    },
-    header:{
-        height:65,
-        backgroundColor: '#214031',
-        position: 'relative',
-    },
-    headerLogo:{
-        position: 'absolute',
-        height:50,
-        width: 95,
-        top:7.5,
-        left:85,
-        tintColor: '#214031',
-    },
-    headerLines:{
-        height:65,
-        width: 269,
-        left:0,
-        position: "absolute",
-        top: 0,
-    },
-    profile:{
-        height:40,
-        width:40,
-        borderRadius: 20,
-        position: 'absolute',
-        right: 12.5,
-        top: 12.5,
-    },
+
 
     loginContainer:{
         flex: 1,
@@ -549,11 +515,13 @@ export const styles = StyleSheet.create({
         maxWidth:'50%',
         color:'#e8e8e8',
         textAlign:'center',
+        paddingVertical:10,
     },
     listEmptyIcon:{
         fontSize:80,
         color:'#e8e8e8',
     },
+
 
     settingsItems:{
         flex:1,

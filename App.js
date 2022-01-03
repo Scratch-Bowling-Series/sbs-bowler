@@ -35,7 +35,8 @@ import UserContext, {UserProvider, UserConsumer} from "./components/context/user
 import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
 import GameScreen from "./components/screens/gameScreen";
 
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+
+import { apiGet, apiPost, apiUserData} from './utils/api';
 
 
 function WelcomeScreen({ navigation }) {
@@ -172,90 +173,28 @@ function SplashScreen({setSplashFinished}){
 }
 
 
-const validateUserToken = async (token) => {
-    let response = await fetch(base_url + '/api/user/data/', {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Token ' + token,
-            credentials: 'include',
-        },
-    });
-    const jsonData = await response.json();
-    if(jsonData && jsonData[0]){
-        return jsonData[0]
-    }
-    return null;
-}
+
 const logoutUserOnServer = async (token) => {
-    const userToken = 'Token ' + token;
-    let response = await fetch(base_url + '/api/user/logout/', {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': userToken,
-            credentials: 'include',
-        },
-    });
-    const jsonData = await response.json();
-    console.log(jsonData);
-    if(jsonData && jsonData[0]){
-        return jsonData[0]
-    }
-    return null;
+    return await apiGet('/api/user/logout/', token);
 }
 const performSignIn = async (email, password) => {
-    email = email.toLowerCase();
-    const response = await fetch(
-        base_url + '/api/user/login/', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
-        });
-    return await response.json();
+    const formData = new FormData();
+    formData.append('email', email.toLowerCase());
+    formData.append('password', password)
+    return await apiPost('/api/user/login/', formData);
 }
 const performSignUp = async (first, last, email, password) => {
-    email = email.toLowerCase();
-    const response = await fetch(
-        base_url + '/api/user/signup/', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                first_name: first,
-                last_name: last,
-                email: email,
-                password: password
-            })
-        });
-    return await response.json();
+    const formData = new FormData();
+    formData.append('first_name', first)
+    formData.append('last_name', last);
+    formData.append('email', email.toLowerCase());
+    formData.append('password', password)
+    return await apiPost('/api/user/signup/', formData);
 }
 const storeExpoPushTokenWithApi = async (userToken, pushToken) => {
-    try{
-        const formData = new FormData();
-        formData.append('pushToken', pushToken);
-        fetch(base_url + '/api/user/store-push/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Token ' + userToken,
-                credentials: 'include',
-            },
-            body: formData
-        });
-    }catch(errors){
-        console.log(errors);
-    }
+    const formData = new FormData();
+    formData.append('pushToken', pushToken);
+    return await apiPost('/api/user/store-push/', formData, userToken);
 }
 
 Notifications.setNotificationHandler({
@@ -272,8 +211,15 @@ const Tab = createBottomTabNavigator();
 const App = () =>  {
     const [expoPushToken, setExpoPushToken] = React.useState('');
     const [notification, setNotification] = React.useState(false);
+    const [hasNotifications, setHasNotifications] = React.useState(false);
+    const [clickedNotification, setClickedNotification] = React.useState(false);
     const notificationListener = React.useRef();
     const responseListener = React.useRef();
+    const backgroundNotificationListener = React.useRef();
+
+    const notificationClickedListener = React.useRef();
+    const backgroundNotificationClickedListener = React.useRef();
+
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     const [settings, setSettings] = React.useState({'autoGameMode': true, 'sendDiagData': false});
@@ -336,7 +282,7 @@ const App = () =>  {
 
 
     const mainScreenOptions = ({ route }) => ({
-        header: (props) => <Header {...props} userData={state.userData} userToken={state.userToken}/>,
+        header: (props) => <Header {...props} userData={state.userData} clickedNotification={clickedNotification} hasNotifications={hasNotifications} onNotificationsChange={(value) => setHasNotifications(value)} userToken={state.userToken}/>,
         headerShown: true,
         tabBarShowLabel: false,
         tabBarIcon: ({ focused, color, size }) => {
@@ -411,12 +357,13 @@ const App = () =>  {
             }
             await getSettings();
             if(userToken){
-                userData_ = await validateUserToken(userToken);
-                if(!userData_){
-                    userToken = null;
+                userData_ = await apiUserData(userToken);
+                if(userData_){
+                    setHasNotifications(userData_.has_notifications);
+                    await AsyncStorage.setItem('@user_data', JSON.stringify(userData_))
                 }
                 else{
-                    await AsyncStorage.setItem('@user_data', JSON.stringify(userData_))
+                    userToken = null;
                 }
             }
             dispatch({ type: 'RESTORE_TOKEN', token: userToken, userData: userData_});
@@ -426,17 +373,15 @@ const App = () =>  {
 
 
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+            setHasNotifications(true);
             setNotification(notification);
         });
 
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-            console.log(response);
+            setClickedNotification(response);
         });
 
-        return () => {
-            Notifications.removeNotificationSubscription(notificationListener.current);
-            Notifications.removeNotificationSubscription(responseListener.current);
-        };
+
 
 
     }, []);

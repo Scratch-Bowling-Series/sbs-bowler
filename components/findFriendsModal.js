@@ -17,7 +17,7 @@ import {SafeAreaView} from "react-native-safe-area-context";
 import {colorStylesDark, colorStylesLight, styles} from "./styles";
 
 const defaultProfilePhoto = require('../assets/profile-default.png');
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 
 
 
@@ -93,8 +93,7 @@ const friendSearchFromApi = async (token, text) => {
             },
             body: formData
         });
-        const jsonData = await response.json();
-        return jsonData ? jsonData.friends : null
+        return await response.json();
     }catch(errors){
         console.log(errors);
     }
@@ -117,10 +116,29 @@ const FindFriendsModal = ({visible, onRequestToClose, userData, userToken, frien
 
 
     const performSearch = async (text) => {
-
-        const results = await friendSearchFromApi(userToken, text);
-        if(results){
-            setFriendsList(results);
+        if(text){
+            const results = await friendSearchFromApi(userToken, text);
+            if(results){
+                const users = results.users;
+                const statuses = results.statuses;
+                if (users && statuses){
+                    let index = 0
+                    users.forEach((user) => {
+                        user.status = statuses[index];
+                        index++;
+                    });
+                    setFriendsList(users);
+                }
+                else{
+                    setFriendsList(null);
+                }
+            }
+            else{
+                setFriendsList(null);
+            }
+        }
+        else{
+            setFriendsList(null);
         }
     }
 
@@ -169,6 +187,11 @@ const FindFriendsModal = ({visible, onRequestToClose, userData, userToken, frien
                         <Ionicons style={[{lineHeight:30,paddingHorizontal:7,}, colors.textGrey]} name="checkmark-sharp" size={20} color="#fff" />
                     </TouchableOpacity>
                 ) : null}
+                {status === 'self' ? (
+                    <TouchableOpacity style={[styles.buttonList, colors.bkgGrey1]} onPress={() => {}} disabled={true}>
+                        <Text style={[styles.buttonListText, styles.fontBold, colors.textGrey]}>YOU</Text>
+                    </TouchableOpacity>
+                ) : null}
                 {status === 'failed' ? (
                     <TouchableOpacity style={[styles.buttonList, colors.bkgGrey1]} onPress={() => {}} >
                         <Text style={[styles.buttonListText, styles.fontBold, colors.textGrey]}>FAILED</Text>
@@ -207,7 +230,7 @@ const FindFriendsModal = ({visible, onRequestToClose, userData, userToken, frien
                 ) : (
                     <View style={styles.listEmpty}>
                         <Ionicons style={[styles.listEmptyIcon, colors.textGrey1]} name="search" color={colorScheme === 'light' ? '#000' : '#fff'} />
-                        <Text style={[styles.listEmptyText, colors.textGrey1]}>Begin searching for new friends by typing their name above!</Text>
+                        <Text style={[styles.listEmptyText, colors.textGrey1, styles.fontBold]}>Begin searching for new friends by typing their name above!</Text>
                     </View>
                 )}
             </SafeAreaView>

@@ -24,7 +24,7 @@ import {
     MenuOption,
 } from 'react-native-popup-menu';
 
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 
 
 
@@ -80,7 +80,7 @@ const Friend = ({ token, friend, colors, removeFriend}) => {
 );}
 
 
-const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friendsList, friendCount, onAskForRefresh, refreshing, removeFriend}) =>  {
+const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friendsList, friendCount, onAskForRefresh, refreshing, removeFriend, onRequestToFindFriends}) =>  {
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
     const placeHolderColor = colorScheme === 'light' ? 'grey' : 'grey';
@@ -110,8 +110,8 @@ const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friend
             <SafeAreaView style={[{flex:1, position:'relative',}, colors.bkgWhite]} edges={['top']}>
                 <MenuProvider>
                     <View style={styles.modalHeader}>
-                        <Text style={[styles.modalHeaderText, colors.textBlack]}>Your Friends</Text>
-                        <TouchableOpacity style={[styles.modalHeaderButton, styles.fontBold, colors.textBlack]} onPress={() => onRequestToClose() }>
+                        <Text style={[styles.modalHeaderText, colors.textBlack, styles.fontBold]}>Your Friends</Text>
+                        <TouchableOpacity style={[styles.modalHeaderButton, colors.textBlack]} onPress={() => onRequestToClose() }>
                             <Ionicons style={[styles.modalHeaderButtonText]} name="close" size={32} color={colorScheme === 'light' ? '#000' : '#fff'} />
                         </TouchableOpacity>
                     </View>
@@ -124,7 +124,12 @@ const AllFriendsModal = ({visible, onRequestToClose, userData, userToken, friend
                     ) : (
                         <View style={styles.listEmpty}>
                             <Ionicons style={[styles.listEmptyIcon, colors.textGrey1]} name="sad-outline" color={colorScheme === 'light' ? '#000' : '#fff'} />
-                            <Text style={[styles.listEmptyText, colors.textGrey1]}>You don't have any friends! </Text>
+                            <Text style={[styles.listEmptyText, colors.textGrey1, styles.fontBold]}>You don't have any friends! </Text>
+                            <TouchableOpacity style={[styles.button, colors.bkgGreen1]} onPress={() => onRequestToFindFriends()}>
+                                <Text style={[styles.buttonText, styles.fontBold, {paddingHorizontal: 25}]}>
+                                    FIND FRIENDS
+                                </Text>
+                            </TouchableOpacity>
                         </View>
                     )}
                 </MenuProvider>

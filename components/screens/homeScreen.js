@@ -11,7 +11,7 @@ import {ScrollView} from "react-native-gesture-handler";
 import VerifyEmail from "../verifyEmail";
 import LeaderboardPreview from "../leaderboardPreview";
 
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 const adImage = require('../../assets/ad-example.png');
 
 const HomeScreen = ({navigation}) => {

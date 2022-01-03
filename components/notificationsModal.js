@@ -27,7 +27,7 @@ const sbsLogo = require('../assets/logo-beta.png');
 const topBarGraphic = require('../assets/top-bar.png');
 const defaultProfilePhoto = require('../assets/profile-default.png');
 
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+const base_url = 'http://10.0.0.211:8000';
 
 
 const getNotificationsFromApi = async (token) => {
@@ -46,7 +46,7 @@ const cancelFriendWithApi = async (token, notification) => {
     try{
         const formData = new FormData();
         formData.append('notification_id', notification.id);
-        formData.append('friend_id', notification.sender);
+        formData.append('friend_id', JSON.parse(notification.data).user_id);
         let response = await fetch(base_url + '/api/user/friend/cancel-request/', {
             method: 'POST',
             headers: {
@@ -66,7 +66,7 @@ const acceptFriendWithApi = async (token, notification) => {
     try{
         const formData = new FormData();
         formData.append('notification_id', notification.id);
-        formData.append('friend_id', notification.sender);
+        formData.append('friend_id', JSON.parse(notification.data).user_id);
         let response = await fetch(base_url + '/api/user/friend/accept-request/', {
             method: 'POST',
             headers: {
@@ -195,7 +195,7 @@ const Duration = (datetime) => {
     return (<Text style={[thisStyles.notifyDateTime, colors.textGrey2]}>{duration}</Text>)
 }
 
-const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onUpdateUserData}) =>  {
+const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onNotificationsChange}) =>  {
     const [notifications, setNotifications] = React.useState(null);
     const [notificationsCount, setNotificationsCount] = React.useState(null);
     const [refreshing, setRefreshing] = React.useState(false);
@@ -207,37 +207,37 @@ const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onU
         const length = data ? data.length : 0;
 
         setNotificationsCount(length);
-        if(length === 0 && userData.has_notifications){
-            userData.has_notifications = false;
-            onUpdateUserData(userData);
+        if(length === 0){
+            onNotificationsChange(false);
+        }
+        else{
+            onNotificationsChange(true);
         }
     }
     const removeNotification = (id) => {
         setNotificationsTask(notifications.filter(item => item.id !== id));
     }
-
-
-
     const notificationTemplate = ({ item }) => {
-        if(item.type === 'friend_request'){
+        if(item.type === 1){
             return (<NotificationFriendRequest notification={item} colors={colors} userToken={userToken} removeNotification={(id) => {removeNotification(id)}}/>)
         }
-        else if(item.type === 'friend_accept'){
+        else if(item.type === 0){
             return (<NotificationFriendAccept notification={item} colors={colors} userToken={userToken} removeNotification={(id) => {removeNotification(id)}}/>)
         }
     }
 
     const performRefresh = async () => {
         setRefreshing(true);
-        setNotificationsTask( await getNotificationsFromApi(userToken));
+        const notifications = await getNotificationsFromApi(userToken);
+        setNotificationsTask(notifications);
         setRefreshing(false);
     }
 
     React.useEffect(() => {
-        if(userData.has_notifications){
+        if(userData.has_notifications || (visible && !userData.has_notifications)){
             performRefresh();
         }
-    },[]);
+    },[visible]);
 
     return (
         <Modal
@@ -265,8 +265,8 @@ const NotificationsModal = ({visible, onRequestToClose, userData, userToken, onU
                         data={notifications} renderItem={notificationTemplate} keyExtractor={item => item.id} />
                 ) : (
                     <View style={styles.listEmpty}>
-                        <Ionicons style={[styles.listEmptyIcon, colors.textGrey1]} name="sad-outline" color={colorScheme === 'light' ? '#000' : '#fff'} />
-                        <Text style={[styles.listEmptyText, colors.textGrey1]}>You don't have any notifications! </Text>
+                        <Ionicons style={[styles.listEmptyIcon, colors.textGrey1]} name="happy-outline" color={colorScheme === 'light' ? '#000' : '#fff'} />
+                        <Text style={[styles.listEmptyText, colors.textGrey1, styles.fontBold]}>You don't have any notifications! </Text>
                     </View>
                 )}
             </View>

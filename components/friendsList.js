@@ -3,39 +3,17 @@ import {StyleSheet, View, Image, TouchableOpacity, useColorScheme, Text, Activit
 import {colorStylesLight, colorStylesDark, styles} from './styles';
 import AllFriendsModal from "./allFriendsModal";
 import FindFriendsModal from "./findFriendsModal";
-const base_url = 'https://scratchbowling.pythonanywhere.com';
+import { apiGet, apiPost } from '../utils/api';
+
 
 const getFriendsListFromApi = async (token) => {
-    let response = await fetch(base_url + '/api/user/friends/', {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': 'Token ' + token,
-            credentials: 'include',
-        },
-    });
-    const jsonData = await response.json();
-    return jsonData ? jsonData[0] : null
+    return await apiGet('/api/user/friend/list/', token);
 }
 const removeFriendWithApi = async (token, friendId) => {
-    try{
-        const formData = new FormData();
-        formData.append('friend_id', friendId);
-        let response = await fetch(base_url + '/api/user/friend/remove/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Token ' + token,
-                credentials: 'include',
-            },
-            body: formData
-        });
-        const jsonData = await response.json();
-        return jsonData ? jsonData.success : false;
-    }catch(errors){
-        console.log(errors);
-    }
+    const formData = new FormData();
+    formData.append('friend_id', friendId);
+    const response = await apiPost('/api/user/friend/remove/', formData, token);
+    return response ? response.success : false;
 }
 
 const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefreshing}) =>  {
@@ -57,8 +35,8 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
         if(friendsList_){
             setFriendsList(friendsList_.friends);
             setFriendCount(friendsList_.friends.length);
-            setFriendRequestListInbound(friendsList_.requests);
-            setFriendRequestListOutbound(friendsList_.sent);
+            setFriendRequestListInbound(friendsList_.requests_received);
+            setFriendRequestListOutbound(friendsList_.requests_sent);
         }else{ setFriendCount(0); }
         setRefreshingSelf(false);
     }
@@ -80,9 +58,9 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
     }
 
     return (
-        <View style={[styles.block, colors.bkgWhite, {flexDirection: friendCount === 0 ? 'row': 'column'}]}>
-            <TouchableOpacity onPress={() => { if(friendCount === 0){setFriendAllVisible(true)} }} disabled={friendCount > 0}>
-                <Text style={[styles.blockHeaderLeft, styles.fontBold, colors.textBlack,{paddingLeft:10,width:'auto',lineHeight: friendCount === 0 ? 40: 20, height: friendCount === 0 ? 40: 20}]}>FRIENDS ({friendCount})</Text>
+        <View style={[styles.block, colors.bkgWhite, {flexDirection: friendCount === 0 ? 'column': 'column'}]}>
+            <TouchableOpacity onPress={() => {setFriendAllVisible(true)}}>
+                <Text style={[styles.blockHeaderLeft, styles.fontBold, colors.textBlack,{paddingLeft:10,width:'auto',lineHeight: 40, height: 30}]}>FRIENDS ({friendCount})</Text>
             </TouchableOpacity>
             <View style={[thisStyles.friendsListContainer]}>
                 {friendsList ? friendsList.slice(0,5).map(friend => {
@@ -98,19 +76,17 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
                     </TouchableOpacity>
                 ) : null}
             </View>
-            <View style={[styles.buttonBar, { alignItems:'flex-end', justifyContent:'flex-end'}, {paddingTop: friendCount === 0 ? 20: 0 }]}>
+            <View style={[styles.buttonBar]}>
                 <TouchableOpacity style={[styles.button, colors.bkgGreen1]} onPress={() => setFriendFinderVisible(true)} disabled={shouldRefresh}>
                     <Text style={[styles.buttonText, styles.fontBold, {paddingHorizontal: 25}]}>
                         FIND FRIENDS
                     </Text>
                 </TouchableOpacity>
-                { friendCount > 0 ? (
-                    <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]} onPress={() => setFriendAllVisible(true)} disabled={shouldRefresh}>
-                        <Text style={[styles.buttonText, styles.fontBold]}>
-                            VIEW ALL
-                        </Text>
-                    </TouchableOpacity>
-                ) : null }
+                <TouchableOpacity style={[styles.buttonFull, colors.bkgGreen1]} onPress={() => setFriendAllVisible(true)} disabled={shouldRefresh}>
+                    <Text style={[styles.buttonText, styles.fontBold]}>
+                        VIEW ALL
+                    </Text>
+                </TouchableOpacity>
             </View>
             <FindFriendsModal visible={friendFinderVisible}
                               onRequestToClose={()=> setFriendFinderVisible(false)}
@@ -125,6 +101,7 @@ const FriendsList = ({navigation, userData, userToken, shouldRefresh, onDoneRefr
                              userData={userData} userToken={userToken}
                              friendsList={friendsList} friendCount={friendCount}
                              removeFriend={(id) => {removeFriend(id)}}
+                             onRequestToFindFriends={() => {setFriendAllVisible(false); setFriendFinderVisible(true);}}
             />
         </View>
     );

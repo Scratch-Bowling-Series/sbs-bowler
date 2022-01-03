@@ -14,13 +14,20 @@ import NotificationsModal from "./notificationsModal";
 import AuthContext from "./context/authContext";
 
 
-const Header = ({route, navigation, userData, userToken}) =>  {
+const Header = ({route, navigation, userData, userToken, hasNotifications, onNotificationsChange, clickedNotification}) =>  {
     const [settingsVisible, setSettingsVisible] = useState(false);
     const [notificationsVisible, setNotificationsVisible] = useState(false);
 
     const colorScheme = useColorScheme();
     const { updateUserData } = React.useContext(AuthContext);
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
+
+    React.useEffect(() => {
+        if(clickedNotification){
+            setNotificationsVisible(true);
+        }
+    }, [clickedNotification])
+
 
     return (
         <SafeAreaView style={[styles.headerWrap, colors.bkgGrey1]} edges={['top']}>
@@ -30,9 +37,11 @@ const Header = ({route, navigation, userData, userToken}) =>  {
                 ) : (
                     <Image source={topBarGraphicDark} style={[styles.headerLines]}/>
                 )}
-                <Image source={sbsLogo} style={[styles.headerLogo, colors.logoTint]}/>
+                <TouchableOpacity style={[styles.headerLogoWrap]} onPress={() => {navigation.navigate('Home'); console.log('nav');}}>
+                    <Image source={sbsLogo} style={[styles.headerLogo, colors.logoTint]}/>
+                </TouchableOpacity>
                 <TouchableOpacity style={[styles.headerButton, {marginRight:0,}]} onPress={() => setNotificationsVisible(true)}>
-                    { userData.has_notifications ? (<View style={styles.headerButtonNotify} />): null}
+                    { hasNotifications ? (<View style={styles.headerButtonNotify} />): null}
                     <Ionicons style={styles.headerButtonText} name="notifications-outline" size={30} color="#fff" />
                 </TouchableOpacity>
                 { route.name !== 'Profile' ? (
@@ -47,7 +56,7 @@ const Header = ({route, navigation, userData, userToken}) =>  {
                     <SettingsModal visible={settingsVisible} onRequestToClose={() => {setSettingsVisible(false)}}/>
                     <NotificationsModal visible={notificationsVisible}
                                         onRequestToClose={() =>{setNotificationsVisible(false)}}
-                                        userData={userData} userToken={userToken} onUpdateUserData={(data)=>{updateUserData(data);}}/>
+                                        userData={userData} userToken={userToken} onNotificationsChange={(data)=>{onNotificationsChange(data);}}/>
                 { colorScheme === 'light' ? (
                     <StatusBar style='dark' />
                 ):(
@@ -78,13 +87,19 @@ const styles = StyleSheet.create({
         alignItems:'flex-end',
         justifyContent:'flex-end',
     },
-    headerLogo:{
+    headerLogoWrap:{
         position: 'absolute',
         height:50,
         width: 95,
         top:7.5,
         left:85,
-        tintColor: '#214031',
+    },
+    headerLogo:{
+        position: 'absolute',
+        height:50,
+        width: 95,
+        top:0,
+        left:0,
     },
     headerLines:{
         height:65,
