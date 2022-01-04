@@ -1,178 +1,30 @@
-
 import React from 'react';
-import {
-    StyleSheet,
-    Text,
-    View,
-    Platform,
-    TouchableOpacity,
-    TextInput,
-    KeyboardAvoidingView,
-    useColorScheme,
-    ActivityIndicator,
-    Linking
-} from 'react-native';
+import {StyleSheet, Text, View, Platform, useColorScheme,} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Video } from 'expo-av';
-import ProfileScreen from "./components/screens/profileScreen";
 import * as Notifications from "expo-notifications";
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFonts} from "expo-font";
-import Header from "./components/header";
-import LoginTop from "./components/loginTop";
 import {colorStylesLight, colorStylesDark, styles} from './components/styles';
+import {AuthProvider} from "./components/context/authContext";
+import {UserProvider} from "./components/context/userContext";
+import {SettingsProvider} from "./components/context/settingsContext";
+import Header from "./components/header";
 import HomeScreen from "./components/screens/homeScreen";
-
-
-import AuthContext, {AuthProvider, AuthConsumer} from "./components/context/authContext";
-import UserContext, {UserProvider, UserConsumer} from "./components/context/userContext";
-import SettingsContext, {SettingsProvider, SettingsConsumer} from "./components/context/settingsContext";
+import TournamentsScreen from './components/screens/tournamentsScreen';
 import GameScreen from "./components/screens/gameScreen";
-
-
+import LiveScreen from "./components/screens/liveScreen";
+import ProfileScreen from "./components/screens/profileScreen";
+import WelcomeScreen from './components/screens/welcomeScreen';
+import LoginScreen from './components/screens/loginScreen';
+import SignupScreen from "./components/screens/signupScreen";
+import SplashScreen from "./components/screens/splashScreen";
 import { apiGet, apiPost, apiUserData} from './utils/api';
-
-
-function WelcomeScreen({ navigation }) {
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    return (
-        <View style={[styles.loginContainer, colors.bkgGreen1]}>
-            <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
-            <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} title="LOG IN" onPress={() => { navigation.navigate('Login')}}>
-                    <Text style={styles.loginButtonText}>
-                        Log In
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.loginButtonOffset} title="LOG IN" onPress={() => { navigation.navigate('Signup')}}>
-                    <Text style={styles.loginButtonTextOffset}>
-                        Create an Account
-                    </Text>
-                </TouchableOpacity>
-            </SafeAreaView>
-        </View>
-    );
-}
-function LoginScreen({ navigation, loginError, applying}) {
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-
-    const { signIn } = React.useContext(AuthContext);
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    const placeHolderColor = colorScheme === 'light' ? 'lightgrey' : 'grey';
-    return (
-        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "undefined"}>
-            <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
-            <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
-                <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password" placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} onPress={() => signIn({ email, password })} disabled={applying}>
-                    <Text style={styles.loginButtonText}>
-                        Log In
-                    </Text>
-                    <ActivityIndicator style={styles.buttonLoader} size="small" color="#fff" animating={applying}/>
-                </TouchableOpacity>
-                <Text style={styles.loginOrDivider}>OR</Text>
-                <TouchableOpacity style={styles.loginButtonOffset} onPress={() => { navigation.navigate('Signup')}} disabled={applying}>
-                    <Text style={styles.loginButtonTextOffset}>
-                        Create an Account
-                    </Text>
-                </TouchableOpacity>
-            </SafeAreaView>
-        </KeyboardAvoidingView>
-    );
-}
-function SignupScreen({navigation, loginError, applying}) {
-    const [firstName, setFirst] = React.useState('');
-    const [lastName, setLast] = React.useState('');
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const { signUp } = React.useContext(AuthContext);
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-    const placeHolderColor = colorScheme === 'light' ? 'lightgrey' : 'grey';
-
-    return (
-        <KeyboardAvoidingView style={styles.loginContainer} behavior={Platform.OS === "ios" ? "padding" : "undefined"}>
-            <LoginTop header={'SBS BOWLER'} desc={'YOUR COMPANION APP FOR SBS TOURNAMENTS!'}/>
-            <SafeAreaView style={styles.loginBottom} edges={['bottom']}>
-                { loginError ? (<Text style={styles.loginError}>{loginError}</Text>) : null}
-                <TextInput style={styles.loginInput} autoComplete="name-given" textContentType="givenName" placeholder="First Name" placeholderTextColor={placeHolderColor} value={firstName} onChangeText={setFirst} />
-                <TextInput style={styles.loginInput} autoComplete="name-family" textContentType="familyName" placeholder="Last Name" placeholderTextColor={placeHolderColor} value={lastName} onChangeText={setLast} />
-                <TextInput style={styles.loginInput} autoComplete="email" textContentType="emailAddress" placeholder="Email Address" placeholderTextColor={placeHolderColor} value={email} onChangeText={setEmail} />
-                <TextInput style={styles.loginInput} autoComplete="password" textContentType="password" placeholder="Password"  placeholderTextColor={placeHolderColor} value={password} onChangeText={setPassword} secureTextEntry />
-                <TouchableOpacity style={[styles.loginButton, colors.bkgGreen1]} onPress={()=> signUp({ firstName, lastName, email, password })} disabled={applying}>
-                    <Text style={styles.loginButtonText}>
-                        Create an Account
-                    </Text>
-                    <ActivityIndicator style={styles.buttonLoader} size="small" color="#fff" animating={applying}/>
-                </TouchableOpacity>
-                <Text style={styles.loginOrDivider}>OR</Text>
-                <TouchableOpacity style={styles.loginButtonOffset} onPress={() => { navigation.navigate('Login')}} disabled={applying}>
-                    <Text style={styles.loginButtonTextOffset}>
-                        Log In
-                    </Text>
-                </TouchableOpacity>
-            </SafeAreaView>
-        </KeyboardAvoidingView>
-    );
-}
-function TournamentsScreen({navigation, token}) {
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-
-    return (
-        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-
-            <View style={styles.container}>
-                <Text style={styles.screenEmpty}>NO TOURNAMENTS</Text>
-            </View>
-        </SafeAreaView>
-    );
-}
-function LiveScreen({navigation}) {
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
-
-    return (
-        <SafeAreaView style={[styles.safeAreaView, colors.bkgGrey1]}>
-
-            <View style={styles.container}>
-                <Text style={styles.screenEmpty}>NO LIVE STREAMS</Text>
-            </View>
-        </SafeAreaView>
-    );
-}
-function SplashScreen({setSplashFinished}){
-    const colorScheme = useColorScheme();
-    const colors = colorScheme === 'light' || true ? colorStylesLight : colorStylesDark;
-
-    const playbackStatusUpdate = (status) => {
-        if(status.didJustFinish){
-            setSplashFinished(true);
-        }
-    }
-
-    return (
-        <View style={{flex: 1,}}>
-            <Video source={require('./assets/SBS_Logo_Reveal.mp4')}
-                   style={{flex:1, resizeMode:'contain'}}
-                   resizeMode="contain" shouldPlay={true}
-                   onPlaybackStatusUpdate={ (playbackStatus) => playbackStatusUpdate(playbackStatus)}/>
-        </View>
-    );
-}
-
-
 
 const logoutUserOnServer = async (token) => {
     return await apiGet('/api/user/logout/', token);
@@ -204,7 +56,6 @@ Notifications.setNotificationHandler({
         shouldSetBadge: false,
     }),
 });
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -215,10 +66,6 @@ const App = () =>  {
     const [clickedNotification, setClickedNotification] = React.useState(false);
     const notificationListener = React.useRef();
     const responseListener = React.useRef();
-    const backgroundNotificationListener = React.useRef();
-
-    const notificationClickedListener = React.useRef();
-    const backgroundNotificationClickedListener = React.useRef();
 
     const colorScheme = useColorScheme();
     const colors = colorScheme === 'light' ? colorStylesLight : colorStylesDark;
@@ -279,8 +126,6 @@ const App = () =>  {
         prefixes: ['https://bowler.scratchbowling.com', 'exps://bowler.scratchbowling.com'],
 
     };
-
-
     const mainScreenOptions = ({ route }) => ({
         header: (props) => <Header {...props} userData={state.userData} clickedNotification={clickedNotification} hasNotifications={hasNotifications} onNotificationsChange={(value) => setHasNotifications(value)} userToken={state.userToken}/>,
         headerShown: true,
@@ -330,9 +175,6 @@ const App = () =>  {
         headerShown:false,
     };
     const welcomeScreenOptions = ({ route }) => ({ headerShown: false,});
-
-
-
 
     React.useEffect(() => {
         const getSettings = async () => {
@@ -489,7 +331,6 @@ const App = () =>  {
         return <SplashScreen setSplashFinished={setSplashFinished}/>;
     }
 
-
   return (
       <SettingsProvider value={[settings, setSettings]}>
           <AuthProvider value={authContext}>
@@ -577,175 +418,7 @@ async function registerForPushNotificationsAsync() {
 
 
 const thisStyles = StyleSheet.create({
-    safeAreaView:{
-        flex: 1,
-    },
-    container:{
-        flex: 1, alignItems: 'center', justifyContent: 'center',
-    },
-    screenEmpty:{
-        fontSize:30,
-        fontFamily: 'TTOctosquaresCondBold',
-        color:'lightgrey',
-    },
 
-
-    loginContainer:{
-        flex: 1,
-        backgroundColor: '#214031',
-        overflow: 'hidden',
-    },
-    loginBottom:{
-        backgroundColor: 'white',
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        textAlign: 'center',
-        position: 'relative',
-    },
-    buttonLoader:{
-        left:15,
-        position:'absolute',
-    },
-    loginTop:{
-        flex:4,
-        backgroundColor: '#214031',
-    },
-    loginTopInner:{
-        flex:8,
-        position: 'relative',
-    },
-    loginLogo:{
-        resizeMode: 'center',
-        tintColor: '#fff',
-        flex:1,
-        height: '100%',
-        alignSelf: 'flex-start',
-    },
-    loginOrDivider:{
-        textAlign: 'center',
-        fontSize: 14,
-        color: '#3d3d3d',
-        fontFamily: 'TTOctosquaresCondBold',
-    },
-    loginHelp:{
-        flex:3,
-        alignItems: 'flex-end',
-        paddingVertical: 12,
-    },
-    loginHeader:{
-        position: 'absolute',
-        top: 0, right:0, left:0,
-        zIndex: 200,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        flexDirection: 'row',
-        fontFamily: 'TTOctosquaresCondBlack',
-    },
-    loginError:{
-        color: 'red',
-        paddingHorizontal:10,
-        textTransform: 'capitalize',
-    },
-    welcomeTopMessage:{
-      position: "absolute",
-      bottom: 0,
-      left:0,
-      padding:30,
-    },
-    welcomeHeaderText:{
-        color: '#fff',
-        fontSize: 35,
-        fontFamily: 'TTOctosquaresCondBold',
-        paddingVertical: 5,
-    },
-    welcomeHeaderDesc:{
-        color: '#fff',
-        fontSize: 20,
-        maxWidth: '90%',
-        fontFamily: 'TTOctosquaresCondBold',
-    },
-    loginInput:{
-        fontSize:18,
-        borderWidth: 2,
-        borderColor: 'grey',
-        borderRadius: 15,
-        margin: 10,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        fontFamily: 'TTOctosquaresCondRegular',
-        color: 'grey'
-    },
-    loginButton:{
-        borderRadius: 15,
-        margin: 10,
-        backgroundColor: '#214031',
-        textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loginButtonText:{
-        fontSize: 20,
-        textAlign: 'center',
-        color: 'white',
-        textTransform: 'uppercase',
-        fontFamily: 'TTOctosquaresCondBold',
-        textAlignVertical: 'center',
-        padding:10,
-    },
-    loginButtonOffset:{
-        margin: 10,
-        borderRadius: 15,
-        backgroundColor: 'lightgrey',
-        textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loginButtonTextOffset:{
-        fontSize: 20,
-        padding:10,
-        textAlign: 'center',
-        color: '#3d3d3d',
-        textTransform: 'uppercase',
-        fontFamily: 'TTOctosquaresCondBold',
-        textAlignVertical: 'center',
-    },
-    welcomeDesign:{
-        width: '100%',
-        height: 600,
-        marginVertical: 100,
-        resizeMode: "cover",
-        tintColor: '#234434'
-    },
-    helpModal:{
-
-    },
-    helpHeader:{
-        flex:1,
-        flexDirection: 'row',
-    },
-    helpClose:{
-        flex:1,
-        paddingVertical: 12,
-        textAlign: 'right',
-        alignItems: 'flex-end',
-    },
-    helpHeaderText:{
-        flex:10,
-        color: '#000',
-        fontSize: 35,
-        fontFamily: 'TTOctosquaresCondBold',
-        padding:20,
-    },
-    helpBody: {
-        flex:9,
-    },
-    helpText: {
-        color: '#000',
-        fontSize: 18,
-        fontFamily: 'TTOctosquaresCondBold',
-        paddingHorizontal:30,
-        paddingVertical: 10,
-    },
 
 });
 

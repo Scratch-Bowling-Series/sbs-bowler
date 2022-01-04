@@ -5,6 +5,7 @@ import {Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, useColorScheme,
 import sbsLogo from "../assets/logo-beta.png";
 import {colorStylesDark, colorStylesLight, styles} from "./styles";
 import {StatusBar} from "expo-status-bar";
+import * as Application from "expo-application";
 
 const LoginHeader = ({navigation}) =>  {
     const [modalVisible, setModalVisible] = useState(false);
@@ -14,7 +15,9 @@ const LoginHeader = ({navigation}) =>  {
 
     return(
         <SafeAreaView style={thisStyles.loginHeader} edges={['top']}>
-            <Image source={sbsLogo} style={thisStyles.loginLogo}/>
+            <TouchableOpacity style={thisStyles.loginLogoWrap} onPress={() => navigation.navigate('Welcome')}>
+                <Image source={sbsLogo} style={thisStyles.loginLogo}/>
+            </TouchableOpacity>
             <TouchableOpacity style={thisStyles.loginHelp} onPress={() => setModalVisible(true)}>
                 <Ionicons name="help-circle-outline" size={32} color="#fff" />
             </TouchableOpacity>
@@ -55,7 +58,7 @@ const LoginHeader = ({navigation}) =>  {
 
                     </View>
 
-                    <Text style={styles.settingsVersion}>SBS BOWLER - v1.0.0-b</Text>
+                    <Text style={styles.settingsVersion}>SBS BOWLER - v{Application.nativeApplicationVersion}</Text>
                     <Text style={styles.settingsWeb}>SCRATCH BOWLING SERIES</Text>
                 </SafeAreaView>
             </Modal>
@@ -83,6 +86,10 @@ const thisStyles = StyleSheet.create({
     loginTopInner:{
         flex:8,
         position: 'relative',
+    },
+    loginLogoWrap:{
+        alignSelf: 'flex-start',
+        alignItems:'flex-start',
     },
     loginLogo:{
         resizeMode: 'contain',

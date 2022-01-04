@@ -4,10 +4,10 @@ import {StyleSheet, Text, View, Image, useColorScheme} from 'react-native';
 import LoginHeader from "./loginHeader";
 import {colorStylesDark, colorStylesLight} from "./styles";
 
-const welcomeDesign= require('../assets/welcome-design.png');
+const welcomeDesign = require('../assets/welcome-design.png');
 
 
-const LoginTop = ({header, desc}) =>  {
+const LoginTop = ({navigation, header, desc}) =>  {
 
     const colorScheme = useColorScheme();
 
@@ -15,7 +15,7 @@ const LoginTop = ({header, desc}) =>  {
 
     return(
         <View style={[styles.loginTop, colors.bkgGreen1]}>
-            <LoginHeader/>
+            <LoginHeader navigation={navigation}/>
             <View style={styles.loginTopInner}>
                 <Image source={welcomeDesign} style={[styles.welcomeDesign, {tintColor: colorScheme === 'light' ? '#234434' : '#111111'}]}/>
                 <View style={styles.welcomeTopMessage}>

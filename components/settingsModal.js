@@ -15,7 +15,7 @@ import {
     useColorScheme
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {StatusBar} from "expo-status-bar";
+import * as Application from 'expo-application';
 import {SafeAreaView} from "react-native-safe-area-context";
 import AuthContext from "./context/authContext";
 import UserContext from "./context/userContext";
@@ -109,7 +109,7 @@ const SettingsModal = ({visible, onRequestToClose}) =>  {
 
                 </View>
 
-                <Text style={styles.settingsVersion}>SBS BOWLER - v1.0.0-b</Text>
+                <Text style={styles.settingsVersion}>SBS BOWLER - v{Application.nativeApplicationVersion}</Text>
                 <Text style={styles.settingsWeb}>SCRATCH BOWLING SERIES</Text>
             </SafeAreaView>
         </Modal>

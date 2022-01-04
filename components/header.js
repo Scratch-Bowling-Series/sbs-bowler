@@ -126,10 +126,10 @@ const styles = StyleSheet.create({
         marginVertical:12.5,
     },
     headerButtonImage:{
-        height:40,
-        width:40,
-        borderRadius: 20,
-        marginVertical:12.5,
+        height:30,
+        width:30,
+        backgroundColor:'orange',
+        marginVertical:17.5,
     },
     headerButtonNotify:{
         position:"absolute",

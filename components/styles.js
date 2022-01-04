@@ -572,4 +572,13 @@ export const styles = StyleSheet.create({
 
 
 
+    loginError:{
+        color: 'red',
+        paddingHorizontal:10,
+        textTransform: 'capitalize',
+    },
+
+
+
+
 });
