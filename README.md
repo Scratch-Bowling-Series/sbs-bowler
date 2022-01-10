@@ -66,7 +66,7 @@ Editor preferences are available in the [editor config](https://reponame/blob/ma
 
 ## Recent Screenshots
 ![alt text](https://github.com/Scratch-Bowling-Series/sbs-bowler/blob/master/screenshots/Screenshot_1.png?raw=true)
-![alt text](https://github.com/Scratch-Bowling-Series/sbs-bowler/blob/main/screenshots/Screenshot_2.png?raw=true)
+![alt text](https://github.com/Scratch-Bowling-Series/sbs-bowler/blob/master/screenshots/Screenshot_2.png?raw=true)
 
 ## Creators
 
