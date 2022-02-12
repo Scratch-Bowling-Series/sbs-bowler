@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AuthContext from "./context/authContext";
 
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://bowl.sbs';
 
 const getProfileDataFromApi = async (token) => {
     let response = await fetch(base_url + '/api/user/data/', {

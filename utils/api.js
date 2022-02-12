@@ -1,6 +1,6 @@
 
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://www.bowl.sbs';
 
 export const apiGet = async (url, token) => {
     try{
@@ -20,6 +20,8 @@ export const apiGet = async (url, token) => {
 }
 
 export const apiPost = async (url, formData, token=null) => {
+
+
     let headers;
     if(token){
         headers = {

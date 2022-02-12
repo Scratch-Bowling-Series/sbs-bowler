@@ -17,7 +17,7 @@ import { CommonActions } from '@react-navigation/native';
 import { useIsFocused } from "@react-navigation/native";
 
 
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://bowl.sbs';
 const adImage = require('../../assets/ad-example.png');
 
 const GameScreen = ({navigation}) => {

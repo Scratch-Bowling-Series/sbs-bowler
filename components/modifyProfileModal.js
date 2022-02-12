@@ -20,7 +20,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const googlePlacesApiKey = 'AIzaSyAJF26vR7y95AC7xjFt2cqSRv21gEC-yZE';
-const base_url = 'http://10.0.0.211:8000';
+const base_url = 'https://bowl.sbs';
 
 function getAddressStringFromUserData(userData){
     const street = userData.street || '';
