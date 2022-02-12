@@ -385,6 +385,7 @@ async function schedulePushNotification() {
         trigger: { seconds: 2 },
     });
 }
+
 async function registerForPushNotificationsAsync() {
     let token;
     if (Device.isDevice) {
@@ -415,11 +416,5 @@ async function registerForPushNotificationsAsync() {
     return token;
 }
 
-
-
-const thisStyles = StyleSheet.create({
-
-
-});
 
 export default App;
