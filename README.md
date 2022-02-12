@@ -1,8 +1,8 @@
 
 
 <p align="center">
-  <a href="https://scratchbowling.pythonanywhere.com">
-    <img src="https://scratchbowling.pythonanywhere.com/static/img/SBS_Logo.png" alt="Logo" width=142 >
+  <a href="https://bowl.sbs">
+    <img src="https://bowl.sbs/static/img/SBS_Logo.png" alt="Logo" width=142 >
   </a>
 
 <h3 align="center">SBS BOWLER</h3>
@@ -77,7 +77,7 @@ Editor preferences are available in the [editor config](https://reponame/blob/ma
 ## The SBS Ecosystem
 - [SBS Prolink (Managment Software)](https://github.com/Scratch-Bowling-Series/sbs-prolink)
 - SBS Bowler (Bowler Companion App)
-- [SBS App (Primary Mobile App)](https://github.com/Scratch-Bowling-Series/sbs-bowler)
+- [SBS Mobile (Primary Mobile App)](https://github.com/Scratch-Bowling-Series/sbs-mobile)
 - [SBS Web (New Website & REST API)](https://github.com/Scratch-Bowling-Series/sbs-website/sbs-website)
 ## Copyright and license
 
